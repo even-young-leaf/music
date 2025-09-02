@@ -14,3 +14,8 @@ def indexView(request):
     downloads = songDynamic.order_by('-downloads').all()[:6]
     tabs = [searchs[:6],downloads]
     return render(request,'index.html',locals())
+
+def page_not_found(request, exception):
+    return render(request,'404.html',status=404)
+def page_error(request):
+    return render(request,'404.html',status=500)

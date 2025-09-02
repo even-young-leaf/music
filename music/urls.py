@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path,re_path,include
 from django.views.static import serve
 from django.conf import settings
+from index import views. page_not_found
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("",include("index.urls")),
@@ -13,3 +15,5 @@ urlpatterns = [
     # 定义媒体资源的路由信息
     re_path("media/(?P<path>.*)",serve,{"document_root": settings.MEDIA_ROOT},name = "media"),
 ]
+ hanndler404 = views.page_not_found
+ handler500 = views.page_error
