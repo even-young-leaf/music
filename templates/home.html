@@ -1,10 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+# templates的home.html
+{% extends "base.html" %}
+{% load static %}
+{% block link %}
+<link rel="shortcut icon" href="{% static "favicon.ico" %}">
+....(省略部分代码)
+    <input class="search-button" value="搜索">
+</form>
+<div id="suggest" class="search-suggest"></div>
+<div class="search-hot-words">
+    {% for s in searchs %}
+        <a target="play" href="{% url 'play' s.song.id %}">
+            {{ s.song.name }}
+        </a>
+    {% endfor %}
+</div>
+</div><div class="nav-box">
+    <div class="nav-box-inner">
+        <ul class="nav clear-fix">
+            <li><a href="{% url 'index' %}" >首页</a></li>
+            <li>
+                <a href="{% url 'ranking' %}" target="_blank">歌曲排行</a>
+            </li>
+            <li>
+                <a href="{% url 'home' 1 %}" target="_blank">用户中心</a>
+            </li>
+        </ul>
+    </div>
+</div><div class="mod_profile js_user_data" style="">
+    <div class="section_inner">..................①
+        <div class="profile_cover_link">
+            <img src="{% static "image/user.jpg" %}" class="profile_cover">
+        </div>
+        <h1 class="profile_tit">
+            <span class="profile_name">{{ user.username }}</span>
+        </h1>
+        <a href="{% url 'logout' %}" style="color:white;">退出登录</a>
+    </div>
+</div>
+..................②
+<div class="main main--profile" style="">
+    <div class="mod_tab profile_nav" role="nav" id="nav">
+        <span class="mod_tab_item mod_tab_current"
+            id="hear_tab">我听过的歌</span>
+    </div>
+    <div class="js_box" style="display: block;">
+        <div class="profile_cont">
+            <div class="js_sub" style="display: block;">
+                <div class="mod_songlist">
+                    <ul class="songlist_header">
+                        <li class="songlist_header_author">歌手</li>
+<li class="songlist_header_time">时长</li>
+</ul>
+<ul class="songlist_list">
+    {% for item in pages.object_list %}
+    <li class="songlist_item songlist_item--even">
+        <div class="songlist_songname">
+            <a href="{% url 'play' item.id %}"
+                class="js_song songlist_songname_txt" >
+                {{ item.name }}
+            </a>
+        </div>
+        <div class="songlist_artist">
+            <a href="javascript:;" class="singer_name">
+                {{ item.singer }}
+            </a>
+        </div>
+        <div class="songlist_time">{{ item.time }}</div>
+    </li>
+    {% endfor %}
+</ul><div class="page-box">
+    <div class="pagebar" id="pageBar">
+        {% if pages.has_previous %}
+            <a href="{% url 'home' pages.previous_page_number %}"
+                class="prev" target="_self"><i></i>上一页</a>
+        {% endif %}
+        {% for page in pages.paginator.page_range %}
+            {% if pages.number == page %}
+                <span class="sel">{{ page }}</span>
+            {% else %}
+                <a href="{% url 'home' page %}" target="_self">{{ page }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if pages.has_next %}
+            <a href="{% url 'home' pages.next_page_number %}"
+                class="next" target="_self">下一页<i></i></a>
+        {% endif %}
+    </div>
+</div></div></div></div></div></div></body>
+{% endblock %}
