@@ -1,5 +1,6 @@
 from django.db import models
-
+from django.db import models
+from django.contrib.auth.models import AbstractUser
 # 歌曲分类表
 class Label (models.Model):
     id = models.AutoField("序号",primary_key=True)
@@ -59,3 +60,12 @@ class Comment(models.Model):
         # 设置Admin的显示内容
         verbose_name = '歌曲评论'
         verbose_name_plural = '歌曲评论'
+
+class MyUser(AbstractUser):
+    qq = models.CharField('QQ号码', max_length=20)
+    wechat = models.CharField('微信号码', max_length=20)
+    mobile = models.CharField('手机号码', max_length=11, unique=True)
+
+    # 设置返回值
+    def __str__(self):
+        return self.username
