@@ -7,9 +7,10 @@
     <meta name="keywords" content="">
     <meta name="description" content="">
     <title>我的音乐</title>
-    { % block link % }{ % endblock % }
+    {% load static %}
+    {% block link %}{% endblock %}
 </head>
-{ % block body % }{ % endblock % }
+{% block body %}{% endblock %}
 <div class="footer">
     <div class="copyright">
         <p>网站数据信息来源于网络</p>

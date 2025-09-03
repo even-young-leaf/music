@@ -12,6 +12,8 @@ urlpatterns = [
     path('comment/',include("comment.urls")),
     path('search/',include("search.urls")),
     path('user/',include("user.urls")),
+    # 定义静态资源的路由信息
+    re_path('static/(?P<path>.*)',serve,{'document_root': settings.STATIC_ROOT},name = 'static'),
     # 定义媒体资源的路由信息
     re_path('media/(?P<path>.*)',serve,{'document_root': settings.MEDIA_ROOT},name = 'media'),
 ]
