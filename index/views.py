@@ -1,3 +1,4 @@
+# index的views.py
 from django.shortcuts import render
 from .models import *
 def indexView(request):
@@ -11,7 +12,7 @@ def indexView(request):
     # 新歌推荐
     recommend = Song.objects.order_by('release').all()[:3]
     # 热门搜索、热门下载
-    downloads = songDynamic.order_by('-downloads').all()[:6]
+    downloads = songDynamic.order_by('-download').all()[:6]
     tabs = [searchs[:6],downloads]
     return render(request,'index.html',locals())
 

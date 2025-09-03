@@ -1,3 +1,8 @@
+"""
+    用户管理由项目应用user实现，在项目应用user中创建form.py。
+    该文件用于定义表单类MyUserForm，由表单类实现用户注册功能。
+"""
+
 # user的form.py
 from django.contrib.auth.forms import UserCreationForm
 from .models import MyUser
@@ -10,10 +15,10 @@ class MyUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['password'].widget = forms.PasswordInput(
-            attrs={'class': 'txt tabinput',
+            attrs={'class': 'txt tabInput',
                    'placeholder': '密码, 4-16位数字/字母/符号(空格除外)'})
         self.fields['password2'].widget = forms.PasswordInput(
-            attrs={'class': 'txt tabinput', 'placeholder': '重复密码'})
+            attrs={'class': 'txt tabInput', 'placeholder': '重复密码'})
 
     class Meta(UserCreationForm.Meta):
         model = MyUser
@@ -22,7 +27,7 @@ class MyUserCreationForm(UserCreationForm):
         # 设置模型字段的样式和属性
         widgets = {
             'mobile': forms.widgets.TextInput(
-                attrs={'class': 'txt tabinput', 'placeholder': '手机号'}),
+                attrs={'class': 'txt tabInput', 'placeholder': '手机号'}),
             'username': forms.widgets.TextInput(
-                attrs={'class': 'txt tabinput', 'placeholder': '用户名'}),
+                attrs={'class': 'txt tabInput', 'placeholder': '用户名'}),
          }

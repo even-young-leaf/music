@@ -1,3 +1,7 @@
+"""
+    路由login将实现用户注册与登录功能，路由的HTTP请求由视图函数loginView负责接收和处理。
+"""
+
 # user的views.py
 from django.shortcuts import render, redirect
 from django.shortcuts import reverse

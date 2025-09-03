@@ -9,10 +9,11 @@ from index.models import *
 def searchView(request,page):
 
     if(request.method == 'GET'):
-        searchs = Dynamic,objects.select_related('song').order_by('-search').all()[:6]
+        searchs = Dynamic.objects.select_related('song').order_by('-search').all()[:6]
         kword = request.session.get('kword','')
         if kword:
-            songs = Song.objects.filter(Q(song_name__icontains=kword) | Q(singer__icontains=kword)).order_by('release').all()
+            songs = Song.objects.filter(Q(name__icontains=kword) | Q(singer__icontains=kword)).order_by('release').all()
+            
         else:
             songs = Song.objects.order_by('-release').all()[:50]
         # 分页功能
