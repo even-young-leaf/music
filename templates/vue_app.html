@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}音乐网站 - Vue版{% endblock %}
+
+{% block link %}
+  <!-- 这里可以添加特定于Vue应用的CSS链接 -->
+{% endblock %}
+
+{% block body %}
+  <!-- Vue应用的挂载点 -->
+  <div id="app"></div>
+  
+  <!-- 引入Vue打包后的JS文件 -->
+  <script src="/static/js/chunk-vendors.js"></script>
+  <script src="/static/js/app.js"></script>
+{% endblock %}

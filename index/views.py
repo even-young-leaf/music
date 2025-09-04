@@ -1,7 +1,13 @@
 # index的views.py
 from django.shortcuts import render
 from .models import *
+
 def indexView(request):
+    # 检查是否请求Vue版本
+    if request.GET.get('vue') == '1':
+        return render(request, 'vue_app.html')
+        
+    # 原始Django模板版本
     songDynamic = Dynamic.objects.select_related('song')
     # 热搜歌曲
     searchs = songDynamic.order_by('-search').all()[:8]
