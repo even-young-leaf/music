@@ -124,6 +124,28 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
+        /* 分类导航 */
+        .category-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .category-item {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-item:hover,
+        .category-item.active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+        }
+
         /* 统一的排行榜列表样式 */
         .chart-list {
             margin-bottom: 3rem;
@@ -186,6 +208,13 @@
             background: linear-gradient(45deg, #667eea, #764ba2);
             margin-right: 1rem;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .song-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .song-info {
@@ -238,6 +267,34 @@
             color: white;
             transform: scale(1.1);
         }
+
+        /* 热搜歌曲区域 */
+        .hot-searches {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .hot-search-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .hot-search-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .hot-search-rank {
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -247,7 +304,7 @@
             MusicStream
         </div>
         <div class="nav-breadcrumb">
-            <a href="#" class="breadcrumb-item">首页</a>
+            <a href="/" class="breadcrumb-item">首页</a>
             <i class="fas fa-chevron-right"></i>
             <span class="breadcrumb-item active">排行榜</span>
         </div>
@@ -264,126 +321,36 @@
             <p class="page-subtitle">探索不同语言、风格和周期的热门音乐</p>
         </section>
 
-        <section class="chart-list">
-            <h2 class="chart-list-title">全球热歌榜</h2>
-            <div class="chart-items">
-                <div class="chart-item">
-                    <div class="rank top-rank">1</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">Blinding Lights</div>
-                        <div class="song-artist">The Weeknd</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank top-rank">2</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">Shape of You</div>
-                        <div class="song-artist">Ed Sheeran</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank">3</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">Someone You Loved</div>
-                        <div class="song-artist">Lewis Capaldi</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <!-- 分类导航 -->
+        <div class="category-nav">
 
-        <section class="chart-list">
-            <h2 class="chart-list-title">粤语排行榜</h2>
-            <div class="chart-items">
-                <div class="chart-item">
-                    <div class="rank top-rank">1</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">富士山下</div>
-                        <div class="song-artist">陈奕迅</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank top-rank">2</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">明年今日</div>
-                        <div class="song-artist">陈奕迅</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank">3</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">海阔天空</div>
-                        <div class="song-artist">Beyond</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
+            <div class="chart-list-title">热门分类</div>
+            {% for label in labels %}
+            <div class="category-item" data-type="{{ label.id }}">{{ label.name }}</div>
+            {% endfor %}
+        </div>
 
+        <!-- 热搜歌曲排行榜 -->
         <section class="chart-list">
-            <h2 class="chart-list-title">摇滚排行榜</h2>
+            <h2 class="chart-list-title">热搜歌曲排行榜</h2>
             <div class="chart-items">
+                {% for search in searchs %}
                 <div class="chart-item">
-                    <div class="rank top-rank">1</div>
-                    <div class="song-cover"></div>
+                    <div class="rank {% if forloop.counter <= 3 %}top-rank{% endif %}">{{ forloop.counter }}</div>
+                    <div class="song-cover">
+                        {% if search.song.img %}
+                        <img src="{{ search.song.img.url }}" alt="{{ search.song.name }}">
+                        {% else %}
+                        <i class="fas fa-music" style="font-size: 2rem; color: rgba(255,255,255,0.5);"></i>
+                        {% endif %}
+                    </div>
                     <div class="song-info">
-                        <div class="song-title">Bohemian Rhapsody</div>
-                        <div class="song-artist">Queen</div>
+                        <div class="song-title">{{ search.song.name }}</div>
+                        <div class="song-artist">{{ search.song.singer }}</div>
                     </div>
                     <div class="song-actions">
-                        <button class="play-button">
+                        <button class="play-button"
+                                onclick="playSong('{{ search.song.file.url }}', '{{ search.song.name }}', '{{ search.song.singer }}', '{% if search.song.img %}{{ search.song.img.url }}{% endif %}', '{{ search.song.id }}')">
                             <i class="fas fa-play"></i>
                         </button>
                         <button class="action-button">
@@ -391,148 +358,49 @@
                         </button>
                     </div>
                 </div>
-                <div class="chart-item">
-                    <div class="rank top-rank">2</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">Stairway to Heaven</div>
-                        <div class="song-artist">Led Zeppelin</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank">3</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">Hotel California</div>
-                        <div class="song-artist">Eagles</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="chart-list">
-            <h2 class="chart-list-title">国语排行榜</h2>
-            <div class="chart-items">
-                <div class="chart-item">
-                    <div class="rank top-rank">1</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">晴天</div>
-                        <div class="song-artist">周杰伦</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank top-rank">2</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">夜曲</div>
-                        <div class="song-artist">周杰伦</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank">3</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">稻香</div>
-                        <div class="song-artist">周杰伦</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="chart-list">
-            <h2 class="chart-list-title">周排行榜</h2>
-            <div class="chart-items">
-                <div class="chart-item">
-                    <div class="rank top-rank">1</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">Dancing Queen</div>
-                        <div class="song-artist">ABBA</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank top-rank">2</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">Take on Me</div>
-                        <div class="song-artist">a-ha</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="rank">3</div>
-                    <div class="song-cover"></div>
-                    <div class="song-info">
-                        <div class="song-title">Billie Jean</div>
-                        <div class="song-artist">Michael Jackson</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-button">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </section>
     </main>
+
+    <script>
+        // 分类筛选功能
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // 更新激活状态
+                document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                // 获取分类类型
+                const type = this.getAttribute('data-type');
+
+                // 重新加载页面，传递分类参数
+                const url = new URL(window.location);
+                if (type) {
+                    url.searchParams.set('type', type);
+                } else {
+                    url.searchParams.delete('type');
+                }
+                window.location.href = url.toString();
+            });
+        });
+
+        // 播放歌曲功能（简化版）
+        function playSong(songUrl, title, artist, imgSrc, songId) {
+            if (songUrl) {
+                // 创建audio元素播放音乐
+                const audio = new Audio(songUrl);
+                audio.play()
+                    .then(() => {
+                        console.log('正在播放:', title);
+                        // 这里可以集成完整的播放器功能
+                    })
+                    .catch(error => {
+                        console.error('播放失败:', error);
+                        alert('播放失败，请稍后重试');
+                    });
+            }
+        }
+    </script>
 </body>
 </html>

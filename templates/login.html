@@ -780,7 +780,7 @@
 
             // 用户头像点击事件（未登录提示，已登录跳转个人中心）
             document.getElementById('user-avatar').addEventListener('click', function() {
-                const isLoggedIn = false; // 实际项目需从后端获取登录状态（如 cookie/session）
+                const isLoggedIn = {% if request.user.is_authenticated %}true{% else %}false{% endif %};
                 if (isLoggedIn) {
                     window.location.href = '/profile/'; // 个人中心地址
                 } else {

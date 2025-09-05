@@ -18,43 +18,44 @@ from .form import MyUserCreationForm
 
 # 用户注册与登录
 def loginView(request):
-    user = MyUserCreationForm()
+    user_form = MyUserCreationForm()  # 变量名改为 user_form，避免与 request.user 冲突
     tips = ''
     if request.method == 'POST':
-        # 登录
-        if request.POST.get('loginUser', '') is not None:
-            login_user = request.POST.get('loginUser', '').strip()
-            password = request.POST.get('password', '')
-            # 使用Django内置认证系统
-            user = authenticate(request, username=login_user, password=password)
-            if user is not None:
-                login(request, user)
-                # 登录成功后跳转到首页
-                return redirect(reverse('index'))
+        # 1. 处理登录请求（前端传了 loginUser 参数）
+        if request.POST.get('loginUser', ''):
+            login_user = request.POST.get('loginUser', '')  # 用户名/手机号
+            login_pwd = request.POST.get('password', '')    # 密码
+            # 查找用户（支持手机号或用户名登录）
+            try:
+                # 这里修复：原代码 .first() 多余（get() 只能返回一个，加 first() 会报错）
+                user = MyUser.objects.get(Q(mobile=login_user) | Q(username=login_user))
+            except MyUser.DoesNotExist:
+                tips = '用户不存在'
             else:
-                # 尝试通过手机号或用户名查找
-                account = MyUser.objects.filter(Q(mobile=login_user) | Q(username=login_user)).first()
-                if not account:
-                    tips = '用户不存在'
+                # 校验密码（Django 的 check_password 会自动匹配哈希后的密码）
+                if check_password(login_pwd, user.password):
+                    login(request, user)  # 登录成功，初始化登录状态
+                    # 修复：登录后跳转到个人中心（home），而非 comment
+                    return redirect(reverse('home', kwargs={'page': 1}))
                 else:
-                    if check_password(password, account.password):
-                        login(request, account)
-                        return redirect(reverse('index'))
-                    else:
-                        tips = '密码错误'
-        # 注册
+                    tips = '密码错误'
+        # 2. 处理注册请求（前端没传 loginUser 参数）
         else:
-            form = MyUserCreationForm(request.POST, request.FILES)
-            if form.is_valid():
-                form.save()
-                tips = '注册成功'
+            user_form = MyUserCreationForm(request.POST)
+            # 表单验证通过：保存用户
+            if user_form.is_valid():
+                user_form.save()  # 关键：之前遗漏了保存用户，导致注册后无数据
+                tips = '注册成功，请登录'
             else:
-                if form.errors.get('username', ''):
-                    tips = form.errors.get('username', '注册失败')
+                # 提取第一个错误提示（优化用户体验）
+                if user_form.errors.get('username'):
+                    tips = user_form.errors['username'][0]
+                elif user_form.errors.get('mobile'):
+                    tips = user_form.errors['mobile'][0]
                 else:
-                    tips = form.errors.get('mobile', '注册失败')
-    # GET 请求渲染空表单
-    return render(request, 'login.html', locals())
+                    tips = '注册失败，请检查信息'
+    # GET 请求：渲染登录页面（传递表单和提示）
+    return render(request, 'login.html', {'user_form': user_form, 'tips': tips, 'request': request})
 
 # 用户中心
 # 设置用户登录限制

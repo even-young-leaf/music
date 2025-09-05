@@ -15,27 +15,39 @@
             MusicStream
         </div>
 
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input" placeholder="搜索歌曲、艺术家或专辑...">
-        </div>
+        <!-- 找到 search.html 中的搜索容器部分，修改 form 的 action 属性 -->
+<div class="search-container">
+    <!-- 关键修复：用 {% url 'search' page=1 %} 生成正确路由，确保提交到搜索视图的第1页 -->
+    <form id="search-form" action="{% url 'search' page=1 %}" method="get">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" name="keyword"
+               placeholder="搜索歌曲、艺术家或专辑..."
+               value="{{ keyword|default:'' }}">  <!-- 保留关键词回显，提升体验 -->
+    </form>
+</div>
 
-        <!-- 修改顶部导航栏的用户菜单部分 -->
-        <a href="login.html" title="登录"><div class="user-menu">
-            {% if is_authenticated %}
-            <div class="user-avatar">
-                {% if user_avatar %}
-                <img src="{{ user_avatar }}" alt="用户头像" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
-                {% else %}
-                <i class="fas fa-user"></i>
-                {% endif %}
-            </div>
+        <!-- 顶部导航 - 用户菜单单（替换原有代码） -->
+<div class="user-menu">
+    {% if request.user.is_authenticated %}
+    <!-- 已登录：跳转用户中心（默认第1页） -->
+    <a href="{% url 'home' page=1 %}" title="个人中心">
+        <div class="user-avatar">
+            {% if user_avatar %}
+            <img src="{{ user_avatar }}" alt="用户头像" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
             {% else %}
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
+            <i class="fas fa-user"></i>
             {% endif %}
-        </div></a>
+        </div>
+    </a>
+    {% else %}
+    <!-- 未登录：跳转登录页 -->
+    <a href="{% url 'login' %}" title="登录">
+        <div class="user-avatar">
+            <i class="fas fa-user"></i>
+        </div>
+    </a>
+    {% endif %}
+</div>
 
     </nav>
 
@@ -52,7 +64,7 @@
                     <i class="fas fa-compass"></i>
                     浏览
                 </a>
-                <a href="#" class="nav-item">
+                <a href="{% url 'ranking' %}" class="nav-item">
                     <i class="fas fa-chart-line"></i>
                     排行榜
                 </a>
@@ -60,11 +72,11 @@
 
             <div class="nav-section">
                 <div class="nav-title">我的音乐</div>
-                <a href="#" class="nav-item">
+                <a href="collect.html" class="nav-item">
                     <i class="fas fa-heart"></i>
                     我喜欢的
                 </a>
-                <a href="#" class="nav-item">
+                <a href="recentPlay.html" class="nav-item">
                     <i class="fas fa-clock"></i>
                     最近播放
                 </a>
