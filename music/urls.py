@@ -12,8 +12,10 @@ urlpatterns = [
     path('comment/',include("comment.urls")),
     path('search/',include("search.urls")),
     path('user/',include("user.urls")),
-    # 定义静态资源的路由信息
-    re_path('static/(?P<path>.*)',serve,{'document_root': settings.STATIC_ROOT},name = 'static'),
+    # 定义静态资源的路由信息（开发环境走 STATICFILES_DIRS，生产走 STATIC_ROOT）
+    re_path('static/(?P<path>.*)', serve, {
+        'document_root': settings.STATICFILES_DIRS[0] if getattr(settings, 'DEBUG', True) and getattr(settings, 'STATICFILES_DIRS', None) else settings.STATIC_ROOT
+    }, name='static'),
     # 定义媒体资源的路由信息
     re_path('media/(?P<path>.*)',serve,{'document_root': settings.MEDIA_ROOT},name = 'media'),
 ]

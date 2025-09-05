@@ -24,8 +24,8 @@ class Song(models.Model):
     type = models.CharField("类型", max_length=20)
     release = models.DateField("发行时间")
     img = models.FileField("歌曲图片", upload_to="songImg/")
-    lyrics = models.FileField("歌词", upload_to="songLyrics/",default="暂无歌词",blank = True)
-    file = models.FileField("歌曲文件", upload_to="songFile")
+    lyrics = models.FileField("歌词", upload_to="songLyric/",default="暂无歌词",blank = True)
+    file = models.FileField("歌曲文件", upload_to="songFile/")
     label = models.ForeignKey(Label, on_delete=models.CASCADE,verbose_name="歌曲分类")
 
     def __str__(self):

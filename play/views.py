@@ -29,7 +29,17 @@ def playView(request, id):
     p = Dynamic.objects.filter(song_id=int(id)).first()
     plays = p.plays + 1 if p else 1
     Dynamic.objects.update_or_create(song_id=id, defaults={'plays': plays})
-    return render(request,'play.html', locals())
+    # 确保传递歌曲文件的完整URL
+    song_file_url = songs.file.url if songs.file else None
+
+    return render(request, 'play.html', {
+        'songs': songs,
+        'searchs': searchs,
+        'relevant': relevant,
+        'play_list': play_list,
+        'lyrics': lyrics if songs.lyrics != '暂无歌词' else None,
+        'song_file_url': song_file_url
+    })
 
 def downloadView(request, id):
     # 添加下载次数

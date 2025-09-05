@@ -1,115 +1,265 @@
-{% extends "base.html" %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账户设置 - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block link %}
-<link rel="shortcut icon" href="{% static 'favicon.ico' %}">
-<link rel="stylesheet" href="{% static 'css/common.css' %}">
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
-{% endblock %}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
 
-{% block body %}
+        /* 顶部导航栏 */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo i {
+            margin-right: 0.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 新增的导航按钮容器 */
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .auth-buttons .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        /* 活跃按钮样式（登录/注册或登出） */
+        .btn-active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: #ffffff;
+            border: none;
+        }
+
+        /* 不活跃按钮样式（“标黑”） */
+        .btn-inactive {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* 统一的页面布局和卡片样式 */
+        .main-content {
+            padding: 2rem;
+            margin-top: 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .page-header {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .content-card {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .card-title i {
+            margin-right: 0.5rem;
+            color: #4ecdc4;
+        }
+
+        .user-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .user-info-value {
+            font-weight: 500;
+        }
+
+        /* 登出按钮样式 */
+        .btn-logout {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 10px;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        /* 登录/注册卡片样式 */
+        .auth-card {
+            text-align: center;
+        }
+
+        .auth-card .card-title {
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-card .auth-btns-container {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
 <body>
-    <div class="header">
-        <a href="/" class="logo">
-            <img src="{% static 'image/logo.png' %}">
-        </a>
-        <div class="search-box">
-            <form id="searchForm" action="{% url 'search' 1 %}" method="post">
-                {% csrf_token %}
-                <div class="search-keyword">
-                    <input id="kword" name="kword" type="text" class="keyword" maxlength="120">
+    <nav class="top-nav">
+        <div class="logo">
+            <i class="fas fa-music"></i>
+            MusicStream
+        </div>
+        <div class="auth-buttons">
+            <a href="#" class="btn btn-inactive">注册</a>
+            <a href="#" class="btn btn-inactive">登录</a>
+            <a href="#" class="btn btn-active">登出</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1 class="page-title">账户设置</h1>
+            <p class="page-subtitle">管理您的个人资料和账户安全</p>
+        </header>
+
+        <section id="logged-in-state">
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-user-circle"></i>
+                        账户信息
+                    </div>
                 </div>
-                <input id="subSerch" type="submit" class="search-button" value="搜 索" />
-            </form>
-            <div id="suggest" class="search-suggest"></div>
-            <div class="search-hot-words">
-                {% for s in searchs %}
-                <a target="play" href="{% url 'play' s.song.id %}">{{ s.song.name }}</a>
-                {% endfor %}
-            </div>
-        </div>
-    </div><!--end header-->
-<div class="nav-box">
-    <div class="nav-box-inner">
-        <ul class="nav clearfix">
-            <li><a href="{% url 'index' %}">首页</a></li>
-            <li>
-                <a href="{% url 'ranking' %}" target="_blank">歌曲排行</a>
-            </li>
-            <li>
-                <a href="{% url 'home' 1 %}" target="_blank">用户中心</a>
-            </li>
-        </ul>
-    </div>
-</div><!--end nav-box-->
-<div class="mod_profile js_user_data" style="">
-    <div class="section_inner">
-        <div class="profile_cover_link">
-            <img src="{% static 'image/user.jpg' %}" class="profile_cover">
-        </div>
-        <h1 class="profile_tit">
-            <span class="profile_name">{{ user.username }}</span>
-        </h1>
-        <a href="{% url 'logout' %}" class="btn btn-accent" style="margin-left:12px;">退出登录</a>
-    </div>
-</div>
-<!--歌曲播放记录-->
-<div class="main main--profile" style="">
-    <div class="mod_tab profile_nav" role="nav" id="nav">
-        <span class="mod_tab_item mod_tab_current" id="hear_tab">我听过的歌</span>
-    </div>
-    <div class="js_box" style="display: block;">
-        <div class="profile_cont">
-            <div class="js_sub" style="display: block;">
-                <div class="mod_songlist">
-                    <ul class="songlist_header">
-                        <li class="songlist_header_name">歌曲</li>
-                        <li class="songlist_header_author">歌手</li>
-                        <li class="songlist_header_time">时长</li>
-                    </ul>
-                    <ul class="songlist_list">
-                        {% for item in pages.object_list %}
-                        <li>
-                            <div class="songlist_item songlist_item--even">
-                                <div class="songlist_songname">
-                                    <a href="{% url 'play' item.id %}" class="js_song songlist_songname_txt">
-                                        {{ item.name }}
-                                    </a>
-                                </div>
-                                <div class="songlist_artist">
-                                    <a href="javascript:;" class="singer_name">
-                                        {{ item.singer }}
-                                    </a>
-                                </div>
-                                <div class="songlist_time">{{ item.time }}</div>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div><!--end mod_songlist-->
-                <!--分页-->
-                <div class="page-box">
-                    <div class="pagebar" id="pageBar">
-                        {% if pages.has_previous %}
-                        <a href="{% url 'home' pages.previous_page_number %}" class="prev" target="_self"><<<i></i>上一页</a>
-                        {% endif %}
-                        {% for page in pages.paginator.page_range %}
-                        {% if pages.number == page %}
-                        <span class="sel">{{ page }}</span>
-                        {% else %}
-                        <a href="{% url 'home' page %}" target="_self">{{ page }}</a>
-                        {% endif %}
-                        {% endfor %}
-                        {% if pages.has_next %}
-                        <a href="{% url 'home' pages.next_page_number %}" class="next" target="_self">下一页<<<i></i></a>
-                        {% endif %}
+                <div class="info-list">
+                    <div class="user-info-item">
+                        <span class="user-info-label">用户名</span>
+                        <span class="user-info-value">MusicFan_2024</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">邮箱</span>
+                        <span class="user-info-value">musicfan@example.com</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">会员等级</span>
+                        <span class="user-info-value">高级会员</span>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-sign-out-alt"></i>
+                        账户管理
+                    </div>
+                </div>
+                <button class="btn-logout btn-active">
+                    登出
+                </button>
+            </div>
+        </section>
+
+        <section id="logged-out-state" style="display: none;">
+            <div class="content-card auth-card">
+                <h2 class="card-title">
+                    <i class="fas fa-exclamation-circle"></i>
+                    您尚未登录
+                </h2>
+                <p style="color: rgba(255, 255, 255, 0.7);">请登录或注册以管理您的账户。</p>
+                <div class="auth-btns-container">
+                    <a href="#" class="btn btn-active">登录</a>
+                    <a href="#" class="btn btn-active">注册</a>
+                </div>
+            </div>
+        </section>
+    </main>
 </body>
-<script src="{% static 'js/common.js' %}"></script>
-<script src="{% static 'js/home.js' %}"></script>
-{% endblock %}
+</html>

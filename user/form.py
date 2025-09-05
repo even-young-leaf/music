@@ -22,8 +22,8 @@ class MyUserCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = MyUser
-        # 在注册页面添加模型字段：手机号码和密码
-        fields = UserCreationForm.Meta.fields + ('mobile',)
+        # 在注册页面添加模型字段：手机号码、头像
+        fields = UserCreationForm.Meta.fields + ('mobile','avatar',)
         # 设置模型字段的样式和属性
         widgets = {
             'mobile': forms.widgets.TextInput(

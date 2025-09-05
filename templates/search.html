@@ -1,96 +1,785 @@
-{% extends "base.html" %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索结果 - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block link %}
-<link rel="shortcut icon" href="{% static 'favicon.ico' %}">
-<link rel="stylesheet" href="{% static 'css/common.css' %}">
-<link rel="stylesheet" href="{% static 'css/search.css' %}">
-{% endblock %}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
 
-{% block body %}
+        /* 顶部导航栏 - 与现有页面保持一致 */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .logo i {
+            margin-right: 0.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 3rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4ecdc4;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        /* 主要布局 */
+        .main-layout {
+            display: flex;
+            margin-top: 60px;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 240px;
+            height: calc(100vh - 60px);
+            background: rgba(15, 15, 35, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 2rem 1rem;
+            position: fixed;
+            left: 0;
+            top: 60px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            margin-bottom: 0.3rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(45deg, rgba(255, 107, 107, 0.2), rgba(78, 205, 196, 0.2));
+            color: #ffffff;
+            border-left: 3px solid #4ecdc4;
+        }
+
+        .nav-item i {
+            margin-right: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 2rem;
+        }
+
+        /* 搜索头部 */
+        .search-header {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-query {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .search-query span {
+            color: #4ecdc4;
+        }
+
+        .results-count {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.6rem 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border-color: transparent;
+        }
+
+        .filter-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+
+        .results-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .view-all {
+            color: #4ecdc4;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .view-all:hover {
+            color: #ff6b6b;
+        }
+
+        .music-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .music-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .music-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .album-cover {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .music-card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .play-button:hover {
+            transform: scale(1.1);
+        }
+
+        .song-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .artist-name {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .artist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .artist-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .artist-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .artist-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            margin: 0 auto 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .artist-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .follower-count {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .music-grid,
+            .artist-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            .search-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
 <body>
-    <div class="header">
-        <a href="/" class="logo">
-            <img src="{% static 'image/logo.png' %}">
-        </a>
-        <div class="search-box">
-            <form id="searchForm" action="{% url 'search' 1 %}" method="post">
-                {% csrf_token %}
-                <div class="search-keyword">
-                    <input id="kword" name="kword" type="text" class="keyword" maxlength="120"/>
+    <!-- 顶部导航 -->
+    <nav class="top-nav">
+        <div class="logo" onclick="goHome()">
+            <i class="fas fa-music"></i>
+            MusicStream
+        </div>
+
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="搜索歌曲、艺术家或专辑..." id="search-input" value="周杰伦">
+        </div>
+
+        <div class="user-menu">
+            <div class="user-avatar" onclick="goToAuth()">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-layout">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="nav-section">
+                <div class="nav-title">搜索筛选</div>
+                <div class="nav-item active" data-filter="all">
+                    <i class="fas fa-search"></i>
+                    全部结果
                 </div>
-                <input id="subSearch" type="submit" class="search-button" value="搜 索" />
-            </form>
-            <div id="suggest" class="search-suggest"></div>
-            <div class="search-hot-words">
-                {% for s in searchs %}
-                    <a target="play" href="{% url 'play' s.song.id %}">{{ s.song.name }}</a>
-                {% endfor %}
+                <div class="nav-item" data-filter="songs">
+                    <i class="fas fa-music"></i>
+                    歌曲
+                </div>
+                <div class="nav-item" data-filter="artists">
+                    <i class="fas fa-user"></i>
+                    艺术家
+                </div>
+                <div class="nav-item" data-filter="albums">
+                    <i class="fas fa-compact-disc"></i>
+                    专辑
+                </div>
+                <div class="nav-item" data-filter="playlists">
+                    <i class="fas fa-list"></i>
+                    歌单
+                </div>
             </div>
-        </div>
-    </div><!--end header-->
 
-    <div class="nav-box">
-        <div class="nav-box-inner">
-            <ul class="nav clearfix">
-                <li><a href="{% url 'index' %}">首页</a></li>
-                <li><a href="{% url 'ranking' %}" target="_blank">歌曲排行</a></li>
-                <li><a href="{% url 'home' 1 %}" target="_blank">用户中心</a></li>
-            </ul>
-        </div>
-    </div><!--end nav-box-->
+            <div class="nav-section">
+                <div class="nav-title">排序方式</div>
+                <div class="nav-item" data-sort="relevance">
+                    <i class="fas fa-star"></i>
+                    相关度
+                </div>
+                <div class="nav-item" data-sort="popularity">
+                    <i class="fas fa-fire"></i>
+                    热度
+                </div>
+                <div class="nav-item" data-sort="newest">
+                    <i class="fas fa-clock"></i>
+                    最新
+                </div>
+            </div>
+        </aside>
 
-    <!--wrapper-->
-    <div class="wrapper clearfix" id="wrapper">
-        <div class="mod_songlist">
-            <ul class="songlist_header">
-                <li class="songlist_header_name">歌曲</li>
-                <li class="songlist_header_author">歌手</li>
-                <li class="songlist_header_time">时长</li>
-            </ul>
+        <!-- 主内容 -->
+        <main class="main-content">
+            <!-- 搜索头部 -->
+            <div class="search-header">
+                <h2 class="search-query">搜索: <span id="search-query-text">周杰伦</span></h2>
+                <p class="results-count">找到 <span id="results-count">156</span> 个结果</p>
+            </div>
 
-            <ul class="songlist_list">
-                {% for p in pages.object_list %}
-                <li class="js_songlist_child">
-                    <div class="songlist_item">
-                        <div class="songlist_songname">
-                            <span class="songlist_songname_txt">
-                                <a href="{% url 'play' p.id %}" class="js_song" target="play">{{ p.name }}</a>
-                            </span>
+            <div class="search-filters">
+                <button class="filter-btn active" data-filter="all">全部</button>
+                <button class="filter-btn" data-filter="songs">歌曲</button>
+                <button class="filter-btn" data-filter="artists">艺术家</button>
+                <button class="filter-btn" data-filter="albums">专辑</button>
+                <button class="filter-btn" data-filter="playlists">歌单</button>
+            </div>
+
+            <!-- 歌曲结果 -->
+            <div class="results-section" data-type="songs">
+                <div class="section-header">
+                    <h3 class="section-title">歌曲</h3>
+                    <a href="#" class="view-all">查看全部</a>
+                </div>
+
+                <div class="music-grid">
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-music"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="songlist_artist">
-                            <a href="javascript:;" class="singer_name">{{ p.singer }}</a>
-                        </div>
-                        <div class="songlist_time">{{ p.time }}</div>
+                        <div class="song-title">七里香</div>
+                        <div class="artist-name">周杰伦</div>
                     </div>
-                </li>
-                {% endfor %}
-            </ul>
 
-            <div class="page-box" id="pageBar">
-                {% if pages.has_previous %}
-                    <a href="{% url 'search' pages.previous_page_number %}" class="prev" target="_self">
-                        <i></i>上一页
-                    </a>
-                {% endif %}
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-guitar"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="song-title">晴天</div>
+                        <div class="artist-name">周杰伦</div>
+                    </div>
 
-                {% for p in pages.paginator.page_range %}
-                    {% if pages.number == p %}
-                        <span class="sel">{{ p }}</span>
-                    {% else %}
-                        <a href="{% url 'search' p %}" target="_self">{{ p }}</a>
-                    {% endif %}
-                {% endfor %}
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-heart"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="song-title">告白气球</div>
+                        <div class="artist-name">周杰伦</div>
+                    </div>
 
-                {% if pages.has_next %}
-                    <a href="{% url 'search' pages.next_page_number %}" class="next" target="_self">
-                        下一页<i></i>
-                    </a>
-                {% endif %}
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-star"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="song-title">青花瓷</div>
+                        <div class="artist-name">周杰伦</div>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- 艺术家结果 -->
+            <div class="results-section" data-type="artists">
+                <div class="section-header">
+                    <h3 class="section-title">艺术家</h3>
+                    <a href="#" class="view-all">查看全部</a>
+                </div>
+
+                <div class="artist-grid">
+                    <div class="artist-card">
+                        <div class="artist-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="artist-name">周杰伦</div>
+                        <div class="follower-count">1,245万 粉丝</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 专辑结果 -->
+            <div class="results-section" data-type="albums">
+                <div class="section-header">
+                    <h3 class="section-title">专辑</h3>
+                    <a href="#" class="view-all">查看全部</a>
+                </div>
+
+                <div class="music-grid">
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-compact-disc"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="song-title">范特西</div>
+                        <div class="artist-name">周杰伦</div>
+                    </div>
+
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-vinyl"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="song-title">七里香</div>
+                        <div class="artist-name">周杰伦</div>
+                    </div>
+
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-compact-disc"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="song-title">十一月的萧邦</div>
+                        <div class="artist-name">周杰伦</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 歌单结果 -->
+            <div class="results-section" data-type="playlists">
+                <div class="section-header">
+                    <h3 class="section-title">歌单</h3>
+                    <a href="#" class="view-all">查看全部</a>
+                </div>
+
+                <div class="music-grid">
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-list"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="song-title">周杰伦热门歌曲</div>
+                        <div class="artist-name">by MusicStream</div>
+                    </div>
+
+                    <div class="music-card">
+                        <div class="album-cover">
+                            <i class="fas fa-heart"></i>
+                            <div class="play-overlay">
+                                <button class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="song-title">90后青春回忆</div>
+                        <div class="artist-name">by 用户12345</div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
-<script src="{% static 'js/common.js' %}"></script>
-<script src="{% static 'js/search.js' %}"></script>
+
+    <script>
+        // 页面切换功能
+        function goHome() {
+            window.location.href = 'claude_1.html';
+        }
+
+        function goToAuth() {
+            window.location.href = 'auth.html';
+        }
+
+        // 筛选和排序功能
+        function setupFilters() {
+            // 顶部筛选按钮
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const filter = this.dataset.filter;
+                    filterResults(filter);
+                });
+            });
+
+            // 侧边栏筛选
+            const navItems = document.querySelectorAll('.sidebar .nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+
+                    if (this.dataset.filter) {
+                        filterResults(this.dataset.filter);
+                        // 同时更新顶部筛选按钮状态
+                        filterButtons.forEach(btn => {
+                            if (btn.dataset.filter === this.dataset.filter) {
+                                btn.classList.add('active');
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        });
+                    } else if (this.dataset.sort) {
+                        sortResults(this.dataset.sort);
+                    }
+                });
+            });
+
+            // 搜索功能
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch(this.value);
+                }
+            });
+        }
+
+        function filterResults(filter) {
+            const sections = document.querySelectorAll('.results-section');
+
+            if (filter === 'all') {
+                sections.forEach(section => section.style.display = 'block');
+            } else {
+                sections.forEach(section => {
+                    if (section.dataset.type === filter) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        function sortResults(sortType) {
+            console.log('排序方式:', sortType);
+            // 这里可以实现实际的排序逻辑
+        }
+
+        function performSearch(query) {
+            if (query.trim() === '') return;
+
+            document.getElementById('search-query-text').textContent = query;
+            // 这里可以实现实际的搜索逻辑
+            console.log('搜索关键词:', query);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFilters();
+
+            // 为卡片添加点击事件
+            const cards = document.querySelectorAll('.music-card, .artist-card');
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // 这里可以实现点击卡片后的操作，如播放音乐或跳转到详情页
+                    console.log('点击了卡片:', this.querySelector('.song-title, .artist-name').textContent);
+                });
+            });
+        });
+    </script>
 </body>
-{% endblock %}
+</html>

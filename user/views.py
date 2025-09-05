@@ -3,58 +3,63 @@
 """
 
 # user的views.py
+# user的views.py
 from django.shortcuts import render, redirect
-from django.shortcuts import reverse
-
+from django.urls import reverse
+from django.db.models import Q
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from index.models import Dynamic
 from user.models import *
 from .form import MyUserCreationForm
-from django.db.models import Q
-from django.contrib.auth import login
-from django.contrib.auth.hashers import check_password
-from django.shortcuts import render, redirect
-from user.models import *
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
-from django.core.paginator import Paginator
-from django.core.paginator import EmptyPage
-from django.core.paginator import PageNotAnInteger
+
 # 用户注册与登录
 def loginView(request):
     user = MyUserCreationForm()
-    # 提交表单
+    tips = ''
     if request.method == 'POST':
-        # 判断提交的是用户登录还是用户注册
-        # 用户登录
-        if request.POST.get('loginUser', ''):
-            u = request.POST.get('loginUser', '')
-            p = request.POST.get('password', '')
-            ul = MyUser.objects.filter(Q(mobile=u) | Q(username=u)).first()
-            if check_password(p, ul.password):
-                login(request, ul)
-                return redirect(reverse(
-                    'comment', kwargs={'page': 1}))
+        # 登录
+        if request.POST.get('loginUser', '') is not None:
+            login_user = request.POST.get('loginUser', '').strip()
+            password = request.POST.get('password', '')
+            # 使用Django内置认证系统
+            user = authenticate(request, username=login_user, password=password)
+            if user is not None:
+                login(request, user)
+                # 登录成功后跳转到首页
+                return redirect(reverse('index'))
             else:
-                tips = '密码错误'
+                # 尝试通过手机号或用户名查找
+                account = MyUser.objects.filter(Q(mobile=login_user) | Q(username=login_user)).first()
+                if not account:
+                    tips = '用户不存在'
+                else:
+                    if check_password(password, account.password):
+                        login(request, account)
+                        return redirect(reverse('index'))
+                    else:
+                        tips = '密码错误'
+        # 注册
         else:
-            tips = '用户不存在'
-    # 用户注册
-    else:
-        u = MyUserCreationForm(request.POST)
-        if u.is_valid():
-            u.save()
-            tips = '注册成功'
-        else:
-            if u.errors.get('username', ''):
-               tips = u.errors.get('username', '注册失败')
+            form = MyUserCreationForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+                tips = '注册成功'
             else:
-                tips = u.errors.get('mobile', '注册失败')
-    return render(request, 'user.html', locals())
+                if form.errors.get('username', ''):
+                    tips = form.errors.get('username', '注册失败')
+                else:
+                    tips = form.errors.get('mobile', '注册失败')
+    # GET 请求渲染空表单
+    return render(request, 'login.html', locals())
 
 # 用户中心
 # 设置用户登录限制
 @login_required(login_url='/user/login.html')
-def homeView(request,page):
+def homeView(request, page):
     # 热搜歌曲
     searchs = Dynamic.objects.select_related('song').\
         order_by('-search').all()[:4]

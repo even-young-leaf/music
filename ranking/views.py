@@ -9,7 +9,7 @@ def rankingView(request):
     #歌曲列表信息
     t = request.GET.get('type','')
     if t:
-        dynamic = Dynamic.objects.select_related('song').filter(song_label=t).order_by('-plays').all()[:10]
+        dynamic = Dynamic.objects.select_related('song').filter(song__label=t).order_by('-plays').all()[:10]
     else:
         dynamic = Dynamic.objects.select_related('song').order_by('-plays').all()[:10]
     return render(request,'ranking.html',locals())
@@ -19,7 +19,7 @@ class RankingList(ListView):
     def get_queryset(self):
         t = self.request.GET.get('type','')
         if t:
-            dynamics = Dynamic.objects.select_related('song').filter(song_label=t).order_by('-plays').all()[:10]
+            dynamics = Dynamic.objects.select_related('song').filter(song__label=t).order_by('-plays').all()[:10]
         else:
             dynamics = Dynamic.objects.select_related('song').order_by('-plays').all()[:10]
         return dynamics

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录注册 - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- 引入密码哈希依赖库 -->
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航栏 - 与现有页面保持一致 */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .logo i {
+            margin-right: 0.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-breadcrumb {
+            flex: 1;
+            margin-left: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .breadcrumb-item {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb-item:hover {
+            color: #4ecdc4;
+        }
+
+        .breadcrumb-item.active {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        /* 认证页面容器 */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            padding: 2rem;
+            margin-top: 60px;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 0.3rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.8rem;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4ecdc4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .remember-me input {
+            accent-color: #4ecdc4;
+        }
+
+        .forgot-password {
+            color: #4ecdc4;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: #ff6b6b;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            margin: 2rem 0;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .auth-divider span {
+            padding: 0 1rem;
+            font-size: 0.9rem;
+        }
+
+        .social-login {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+
+        .auth-footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .auth-footer a {
+            color: #4ecdc4;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .auth-footer a:hover {
+            color: #ff6b6b;
+        }
+
+        /* 错误提示样式 */
+        .error-hint {
+            color: #ff6b6b;
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .auth-container {
+                padding: 1rem;
+            }
+
+            .auth-card {
+                padding: 2rem;
+            }
+
+            .social-login {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- CSRF 令牌（Django 环境必备，其他框架需替换对应语法） -->
+    {% csrf_token %}
+
+    <!-- 顶部导航 -->
+    <nav class="top-nav">
+        <div class="logo" onclick="goHome()">
+            <i class="fas fa-music"></i>
+            MusicStream
+        </div>
+
+        <div class="nav-breadcrumb">
+            <a href="/" class="breadcrumb-item">首页</a>
+            <i class="fas fa-chevron-right"></i>
+            <span class="breadcrumb-item active" id="current-page">登录</span>
+        </div>
+
+        <div class="user-menu">
+            <div class="user-avatar" id="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 认证页面容器 -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">欢迎回来</h1>
+                <p class="auth-subtitle">登录以继续享受音乐之旅</p>
+            </div>
+
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">登录</div>
+                <div class="auth-tab" data-tab="register">注册</div>
+            </div>
+
+            <!-- 登录表单（用户名+密码，匹配后端逻辑） -->
+            <form class="auth-form active" id="login-form">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <!-- 关键修改：type从email改为text，适配用户名输入 -->
+                    <input type="text" class="form-input" id="login-username" placeholder="请输入用户名" required>
+                    <div class="error-hint" id="login-username-hint">用户名不能为空且长度不小于 3 位</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <div class="password-container">
+                        <input type="password" class="form-input" id="login-password" placeholder="请输入密码" required>
+                        <i class="fas fa-eye password-toggle" id="login-password-toggle"></i>
+                    </div>
+                    <div class="error-hint" id="login-password-hint">密码不能为空且长度不小于 6 位</div>
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox">
+                        记住我
+                    </label>
+                    <a href="/forgot-password/" class="forgot-password">忘记密码?</a>
+                </div>
+
+                <button type="button" class="btn-primary" onclick="login()">登录</button>
+
+                <div class="auth-divider">
+                    <span>或使用以下方式登录</span>
+                </div>
+
+                <div class="social-login">
+                    <button type="button" class="social-btn" onclick="socialLogin('google')">
+                        <i class="fab fa-google"></i>
+                    </button>
+                    <button type="button" class="social-btn" onclick="socialLogin('facebook')">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+                    <button type="button" class="social-btn" onclick="socialLogin('apple')">
+                        <i class="fab fa-apple"></i>
+                    </button>
+                </div>
+
+                <div class="auth-footer">
+                    还没有账号? <a href="#" onclick="switchToRegister()">立即注册</a>
+                </div>
+            </form>
+
+            <!-- 注册表单（已改为：用户名+手机号+密码，匹配后端逻辑） -->
+            <form class="auth-form" id="register-form">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="register-username" placeholder="请输入用户名" required>
+                    <div class="error-hint" id="register-username-hint">用户名不能为空且长度不小于 3 位</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">手机号</label>
+                    <!-- 关键修改：新增手机号输入框，适配后端注册逻辑 -->
+                    <input type="tel" class="form-input" id="register-mobile" placeholder="请输入手机号" required>
+                    <div class="error-hint" id="register-mobile-hint">请输入正确的11位手机号（如 13800138000）</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <div class="password-container">
+                        <input type="password" class="form-input" id="register-password" placeholder="请输入密码" required>
+                        <i class="fas fa-eye password-toggle" id="register-password-toggle"></i>
+                    </div>
+                    <div class="error-hint" id="register-password-hint">密码长度不小于 6 位，且包含字母和数字</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <div class="password-container">
+                        <input type="password" class="form-input" id="register-confirm-pwd" placeholder="请再次输入密码" required>
+                        <i class="fas fa-eye password-toggle" id="confirm-password-toggle"></i>
+                    </div>
+                    <div class="error-hint" id="register-confirm-hint">两次输入的密码不一致</div>
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" id="register-agree">
+                        我同意<a href="/terms/" style="color: #4ecdc4; margin-left: 5px;">服务条款</a>和<a href="/privacy/" style="color: #4ecdc4;">隐私政策</a>
+                    </label>
+                    <div class="error-hint" id="register-agree-hint">请同意服务条款和隐私政策</div>
+                </div>
+
+                <button type="button" class="btn-primary" onclick="register()">注册</button>
+
+                <div class="auth-divider">
+                    <span>或使用以下方式注册</span>
+                </div>
+
+                <div class="social-login">
+                    <button type="button" class="social-btn" onclick="socialLogin('google')">
+                        <i class="fab fa-google"></i>
+                    </button>
+                    <button type="button" class="social-btn" onclick="socialLogin('facebook')">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+                    <button type="button" class="social-btn" onclick="socialLogin('apple')">
+                        <i class="fab fa-apple"></i>
+                    </button>
+                </div>
+
+                <div class="auth-footer">
+                    已有账号? <a href="#" onclick="switchToLogin()">立即登录</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 页面切换功能：跳转首页
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // 登录/注册表单切换（同步隐藏错误提示）
+        function switchToRegister() {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            document.querySelectorAll('.error-hint').forEach(hint => hint.style.display = 'none');
+
+            document.querySelector('[data-tab="register"]').classList.add('active');
+            document.getElementById('register-form').classList.add('active');
+            document.getElementById('current-page').textContent = '注册';
+            document.title = '注册 - MusicStream';
+        }
+
+        function switchToLogin() {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            document.querySelectorAll('.error-hint').forEach(hint => hint.style.display = 'none');
+
+            document.querySelector('[data-tab="login"]').classList.add('active');
+            document.getElementById('login-form').classList.add('active');
+            document.getElementById('current-page').textContent = '登录';
+            document.title = '登录 - MusicStream';
+        }
+
+        // 密码可见性切换（适配所有密码输入框）
+        function setupPasswordToggles() {
+            const toggles = document.querySelectorAll('.password-toggle');
+            toggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    }
+                });
+            });
+        }
+
+        // 密码哈希工具函数（提升安全性，生产环境需后端提供动态盐值）
+        function hashPassword(password) {
+            const salt = 'MusicStream_2024_Salt'; // 实际项目替换为后端动态盐
+            return CryptoJS.SHA256(password + salt).toString();
+        }
+
+        // 登录功能（关键修改：传用户名给后端，匹配“用户名+密码”登录逻辑）
+        function login() {
+            // 获取登录表单元素（用户名+密码）
+            const usernameElem = document.getElementById('login-username');
+            const passwordElem = document.getElementById('login-password');
+            const usernameHint = document.getElementById('login-username-hint');
+            const passwordHint = document.getElementById('login-password-hint');
+
+            // 表单校验（匹配用户名规则）
+            let isValide = true;
+
+            // 用户名校验（非空+长度≥3）
+            if (!usernameElem.value.trim()) {
+                usernameHint.textContent = '请输入用户名';
+                usernameHint.style.display = 'block';
+                isValide = false;
+            } else if (usernameElem.value.trim().length < 3) {
+                usernameHint.textContent = '用户名长度不小于 3 位';
+                usernameHint.style.display = 'block';
+                isValide = false;
+            } else {
+                usernameHint.style.display = 'none';
+            }
+
+            // 密码校验（非空+长度≥6）
+            if (!passwordElem.value.trim()) {
+                passwordHint.textContent = '请输入密码';
+                passwordHint.style.display = 'block';
+                isValide = false;
+            } else if (passwordElem.value.trim().length < 6) {
+                passwordHint.textContent = '密码长度不小于 6 位';
+                passwordHint.style.display = 'block';
+                isValide = false;
+            } else {
+                passwordHint.style.display = 'none';
+            }
+
+            if (!isValide) return;
+
+            // 密码哈希处理
+            const hashedPwd = hashPassword(passwordElem.value.trim());
+
+            // 提交数据到后端登录接口（参数名：loginUser=用户名，匹配后端接收字段）
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/login/'; // 替换为你的后端登录接口地址（如 /user/login/）
+            form.style.display = 'none';
+
+            const fields = [
+                { name: 'loginUser', value: usernameElem.value.trim() }, // 后端接收用户名的字段名
+                { name: 'password', value: hashedPwd }, // 哈希后的密码
+                { name: 'csrfmiddlewaretoken', value: document.querySelector('[name=csrfmiddlewaretoken]').value }
+            ];
+
+            fields.forEach(field => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = field.name;
+                input.value = field.value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // 注册功能（关键修改：传用户名+手机号+密码，匹配后端注册逻辑）
+        function register() {
+            // 获取注册表单元素（用户名+手机号+密码+确认密码）
+            const usernameElem = document.getElementById('register-username');
+            const mobileElem = document.getElementById('register-mobile');
+            const passwordElem = document.getElementById('register-password');
+            const confirmPwdElem = document.getElementById('register-confirm-pwd');
+            const agreeElem = document.getElementById('register-agree');
+
+            // 错误提示元素
+            const usernameHint = document.getElementById('register-username-hint');
+            const mobileHint = document.getElementById('register-mobile-hint');
+            const passwordHint = document.getElementById('register-password-hint');
+            const confirmHint = document.getElementById('register-confirm-hint');
+            const agreeHint = document.getElementById('register-agree-hint');
+
+            // 表单校验（匹配手机号+用户名规则）
+            let isValide = true;
+            const mobileReg = /^1[3-9]\d{9}$/; // 11位手机号正则（匹配国内手机号规则）
+            const pwdReg = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/; // 字母+数字≥6位
+
+            // 用户名校验
+            if (!usernameElem.value.trim()) {
+                usernameHint.textContent = '请输入用户名';
+                usernameHint.style.display = 'block';
+                isValide = false;
+            } else if (usernameElem.value.trim().length < 3) {
+                usernameHint.textContent = '用户名长度不小于 3 位';
+                usernameHint.style.display = 'block';
+                isValide = false;
+            } else {
+                usernameHint.style.display = 'none';
+            }
+
+            // 手机号校验（新增，匹配后端手机号字段）
+            if (!mobileElem.value.trim()) {
+                mobileHint.textContent = '请输入手机号';
+                mobileHint.style.display = 'block';
+                isValide = false;
+            } else if (!mobileReg.test(mobileElem.value.trim())) {
+                mobileHint.textContent = '请输入正确的11位手机号（如 13800138000）';
+                mobileHint.style.display = 'block';
+                isValide = false;
+            } else {
+                mobileHint.style.display = 'none';
+            }
+
+            // 密码校验
+            if (!passwordElem.value.trim()) {
+                passwordHint.textContent = '请输入密码';
+                passwordHint.style.display = 'block';
+                isValide = false;
+            } else if (!pwdReg.test(passwordElem.value.trim())) {
+                passwordHint.textContent = '密码长度不小于 6 位，且包含字母和数字';
+                passwordHint.style.display = 'block';
+                isValide = false;
+            } else {
+                passwordHint.style.display = 'none';
+            }
+
+            // 确认密码校验
+            if (!confirmPwdElem.value.trim()) {
+                confirmHint.textContent = '请再次输入密码';
+                confirmHint.style.display = 'block';
+                isValide = false;
+            } else if (confirmPwdElem.value.trim() !== passwordElem.value.trim()) {
+                confirmHint.textContent = '两次输入的密码不一致';
+                confirmHint.style.display = 'block';
+                isValide = false;
+            } else {
+                confirmHint.style.display = 'none';
+            }
+
+            // 协议同意校验
+            if (!agreeElem.checked) {
+                agreeHint.style.display = 'block';
+                isValide = false;
+            } else {
+                agreeHint.style.display = 'none';
+            }
+
+            if (!isValide) return;
+
+            // 密码哈希处理
+            const hashedPwd = hashPassword(passwordElem.value.trim());
+
+            // 提交数据到后端注册接口（参数名：username/mobile/password，匹配后端字段）
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/register/'; // 替换为你的后端注册接口地址（如 /user/register/）
+            form.style.display = 'none';
+
+            const fields = [
+                { name: 'username', value: usernameElem.value.trim() }, // 后端用户名字段
+                { name: 'mobile', value: mobileElem.value.trim() },     // 后端手机号字段
+                { name: 'password', value: hashedPwd },                 // 哈希后的密码
+                { name: 'csrfmiddlewaretoken', value: document.querySelector('[name=csrfmiddlewaretoken]').value }
+            ];
+
+            fields.forEach(field => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = field.name;
+                input.value = field.value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // 社交登录功能（跳转后端社交登录接口）
+        function socialLogin(type) {
+            const socialUrls = {
+                google: '/social/login/google/',
+                facebook: '/social/login/facebook/',
+                apple: '/social/login/apple/'
+            };
+            window.location.href = socialUrls[type] || '/login/';
+        }
+
+        // 初始化（页面加载完成后执行）
+        document.addEventListener('DOMContentLoaded', function() {
+            setupPasswordToggles();
+
+            // 标签切换事件
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    this.dataset.tab === 'login' ? switchToLogin() : switchToRegister();
+                });
+            });
+
+            // 用户头像点击事件（未登录提示，已登录跳转个人中心）
+            document.getElementById('user-avatar').addEventListener('click', function() {
+                const isLoggedIn = false; // 实际项目需从后端获取登录状态（如 cookie/session）
+                if (isLoggedIn) {
+                    window.location.href = '/profile/'; // 个人中心地址
+                } else {
+                    alert('请先登录以访问个人中心');
+                }
+            });
+
+            // 输入框聚焦时隐藏对应错误提示
+            document.querySelectorAll('.form-input').forEach(input => {
+                input.addEventListener('focus', function() {
+                    const hint = this.nextElementSibling;
+                    if (hint && hint.classList.contains('error-hint')) {
+                        hint.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

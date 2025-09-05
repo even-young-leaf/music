@@ -1,194 +1,207 @@
-
-
-{% extends "base.html" %}
-{% load static %}
-{% block link %}
-<!--重写模板继承接口link，引入网站首页所需的CSS样式文件，实现网页的功能布局-->
-<link rel="shortcut icon" href="{% static 'favicon.ico' %}">
-<link rel="stylesheet" href="{% static 'css/common.css' %}">
-<link rel="stylesheet" href="{% static 'css/index.css' %}">
-{% endblock %}
-
-{% block body %}
-<body class="review">
-<div class="header">
-    <a href="/" class="logo">
-        <!-- 实现了3个网页功能：调用静态资源文件logo.png生成网站LOGO; 使用HTML语言编写网页表单，生成歌曲搜索框，表单以POST请求方式提交到路由search(歌曲搜索页)中; 在歌曲搜索框下方使用模板上下文searchs生成热搜歌曲，每首歌曲可以跳转到歌曲播放页 -->
-        <img src="{% static 'image/logo.png' %}">
-    </a>
-    <div class="search-box">
-        <form id="searchForm" action="{% url 'search' 1 %}" method="post">
-            {% csrf_token %}
-            <div class="search-keyword">
-                <input id="kword" name="kword" type="text"
-                       class="keyword" maxlength="120">
-            </div>
-            <input id="subSerch" type="submit" class="search-button" value="搜 索"/>
-        </form>
-        <div id="suggest" class="search-suggest"></div>
-        <div class="search-hot-words">
-            {% for s in searchs %}
-                <a target="play" href="{% url 'play' s.song.id %}">{{ s.song.name }}</a>
-            {% endfor %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicStream - 在线音乐平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <nav class="top-nav">
+        <div class="logo">
+            <i class="fas fa-music"></i>
+            MusicStream
         </div>
-    </div>
-</div>
 
-<div class="nav-box">
-    <div class="nav-box-inner">
-        <ul class="nav clearfix">
-            <!--实现了导航栏、音乐分类和轮播图功能-->
-            <li><a href="{% url 'index' %}">首页</a></li>
-            <li><a href="{% url 'ranking' %}" target="_blank">歌曲排行</a></li>
-            <li><a href="{% url 'home' 1 %}" target="_blank">用户中心</a></li>
-        </ul>
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="搜索歌曲、艺术家或专辑...">
+        </div>
 
-        <div class="category-nav">
-            <div class="category-nav-header">
-                <strong><a href="javascript:;" title="">音乐分类</a></strong>
+        <!-- 修改顶部导航栏的用户菜单部分 -->
+        <a href="login.html" title="登录"><div class="user-menu">
+            {% if is_authenticated %}
+            <div class="user-avatar">
+                {% if user_avatar %}
+                <img src="{{ user_avatar }}" alt="用户头像" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                {% else %}
+                <i class="fas fa-user"></i>
+                {% endif %}
             </div>
-            <div class="category-nav-body">
-                <div id="J_CategoryItems" class="category-items">
-                    {% for l in labels %}
-                        <div class="item" data-index="1">
-                            <h3>
-                                <a href="{% url 'ranking' %}?type={{ l.id }}">
-                                    {{ l.name }}
-                                </a>
-                            </h3>
-                        </div>
-                    {% endfor %}
+            {% else %}
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            {% endif %}
+        </div></a>
+
+    </nav>
+
+    <div class="main-layout">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="nav-section">
+                <div class="nav-title">发现</div>
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    首页
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-compass"></i>
+                    浏览
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    排行榜
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">我的音乐</div>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-heart"></i>
+                    我喜欢的
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-clock"></i>
+                    最近播放
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-download"></i>
+                    已下载
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">播放列表</div>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-plus"></i>
+                    创建播放列表
+                </a>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+
+<main class="main-content">
+    <!-- 欢迎区域 -->
+    <section class="welcome-section">
+        <h1 class="welcome-title">发现好音乐</h1>
+        <p class="welcome-subtitle">数百万首歌曲，个性化推荐，随时随地享受音乐</p>
+        <button class="cta-button">开始探索</button>
+    </section>
+
+    <!-- 热搜歌曲 -->
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">热搜歌曲</h2>
+            <a href="#" class="view-all">查看全部</a>
+        </div>
+
+        <div class="music-grid" style="grid-template-columns: repeat(3, 1fr);">
+            {% for song_dynamic in searchs %}
+            <div class="music-card"
+                data-song-url="{{ song_dynamic.song.file.url }}"
+                data-song-title="{{ song_dynamic.song.name }}"
+                data-song-artist="{{ song_dynamic.song.singer }}"
+                data-song-id="{{ song_dynamic.song.id }}">
+                <div class="album-cover">
+                    {% if song_dynamic.song.img %}
+                    <img src="{{ song_dynamic.song.img.url }}" alt="{{ song_dynamic.song.name }}">
+                    {% else %}
+                    <i class="fas fa-compact-disc" style="font-size: 3rem;"></i>
+                    {% endif %}
+                    <div class="play-overlay">
+                        <button class="play-button">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
                 </div>
+                <div class="song-title">{{ song_dynamic.song.name }}</div>
+                <div class="artist-name">{{ song_dynamic.song.singer }}</div>
             </div>
+            {% endfor %}
         </div>
+    </section>
+
+    <!-- 推荐音乐 -->
+    <section class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">为你推荐</h2>
+            <a href="#" class="view-all">查看全部</a>
+        </div>
+
+        <div class="music-grid">
+            {% for song in recommend %}
+            <div class="music-card"
+                data-song-url="{{ song.file.url }}"
+                data-song-title="{{ song.name }}"
+                data-song-artist="{{ song.singer }}"
+                data-song-id="{{ song.id }}">
+                <div class="album-cover">
+                    {% if song.img %}
+                    <img src="{{ song.img.url }}" alt="{{ song.name }}" style="width:100%; height:100%; object-fit:cover;">
+                    {% else %}
+                    <i class="fas fa-music"></i>
+                    {% endif %}
+                    <div class="play-overlay">
+                        <button class="play-button">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="song-title">{{ song.name }}</div>
+                <div class="artist-name">{{ song.singer }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
     </div>
 
-    <div class="wrapper clearfix">
-        <div class="main">
-            <div id="J_FocusSlider" class="focus">
-                <div id="bannerLeftBtn" class="banner_btn"></div>
-                <ul class="focus-list f_w">
-                    <li>
-                        <a target="play" href="{% url 'play' 12 %}" class="layz_load">
-                            <img data-src="{% static 'image/datu-l.jpg' %}" width="750" height="275">
-                        </a>
-                    </li>
-                    <li class="f_s">
-                        <a target="play" href="{% url 'play' 12 %}" class="layz_load">
-                            <img data-src="{% static 'image/datu-2.jpg' %}" width="750" height="275">
-                        </a>
-                    </li>
-                </ul>
-                <div id="bannerRightBtn" class="banner_btn"></div>
+    <!-- 底部播放器 -->
+    <div class="bottom-player">
+        <div class="current-track" onclick="goToCurrentPlayPage()">
+            <div class="track-cover">
+                <i class="fas fa-music"></i>
+            </div>
+            <div class="track-info">
+                <h4>选择一首歌曲</h4>
+                <p>艺术家</p>
             </div>
         </div>
 
-        <div class="aside">
-            <h2>热门歌曲</h2>
-            <!-- 遍历模板上下文popular生成热门歌曲 -->
-            <ul>
-                {% for p in popular %}
-                    <li>
-                        <span>{{ forloop.counter }}</span>
-                        <a target="play" href="{% url 'play' p.song.id %}">
-                            {{ p.song.name }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
+        <div class="player-controls">
+            <button class="control-button" onclick="previousSong">
+                <i class="fas fa-step-backward"></i>
+            </button>
+            <button class="control-button play-pause-btn" onclick="togglePlayPause()">
+                <i class="fas fa-play"></i>
+            </button>
+            <button class="control-button">
+                <i class="fas fa-step-forward"></i>
+            </button>
         </div>
+        <div class="progress-container">
+            <span class="current-time">0:00</span>
+            <div class="progress-slider" onclick="seekTo(event)">
+                <div class="progress-fill"></div>
+            </div>
+            <span class="duration">0:00</span>
+        </div>
+
+        <div class="volume-control">
+            <i class="fas fa-volume-up" onclick="toggleMute()"></i>
+            <div class="volume-slider" onclick="setVolume(event)">
+                <div class="volume-fill"></div>
+            </div>
+        </div>
+        <audio id="audio-player" preload="metadata"></audio>
     </div>
+    <script src="/static/js/index.js"></script>
 
-    <div class="today clearfix">
-        <div class="today-header">
-            <i></i>
-            <h2>新歌推荐</h2>
-        </div>
-        <div class="today-list-box slide">
-            <div id="J_TodayRec" class="today-list">
-                <ul>
-                    {% for r in recommend %}
-                        <li>
-                            <a class="pic layz_load pic_po" target="play" href="{% url 'play' r.id %}">
-                                <img data-src="{{ r.img.url }}">
-                            </a>
-                            <div class="name">
-                                <h3>
-                                    <a target="play" href="{% url 'play' r.id %}">
-                                        {{ r.name }}
-                                    </a>
-                                </h3>
-                                <div class="singer"><span>{{ r.singer }}</span></div>
-                                <div class="times">发行时间: <span>{{ r.release|date:"Y-m-d" }}</span></div>
-                            </div>
-                            <a target="play" href="{% url 'play' r.id %}" class="today-buy-button">去听听</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div><!--end today-->
-
-    <div class="section">
-        <ul id="J_Tab" class="tab-trigger">
-            <!-- 遍历模板上下文tabs生成热门搜索和热门下载 -->
-            <li data-curr="0" class="current t_c">热门搜索</li>
-            <li data-curr="1" class="t_c">热门下载</li>
-        </ul>
-        <div class="tab-container">
-            <div id="J_Tab_Con" class="tab-container-cell">
-                {% for tab in tabs %}
-    {% if forloop.first %}
-        <ul class="product-list clearfix t_s current">
-            {% for item in tab %}
-                <li>
-                    <a target="play" href="{% url 'play' item.song.id %}" class="pic layz_load pic_po">
-                        <img data-src="{{ item.song.img.url }}">
-                    </a>
-                    <h3>
-                        <a target="play" href="{% url 'play' item.song.id %}">
-                            {{ item.song.name }}
-                        </a>
-                    </h3>
-                    <div class="singer"><span>{{ item.song.singer }}</span></div>
-                    {% if tabs.0 == tab %}
-                        <div class="times">搜索次数: <span>{{ item.search }}</span></div>
-                    {% else %}
-                        <div class="times">下载次数: <span>{{ item.download }}</span></div>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <ul class="product-list clearfix t_s" style="display:none;">
-            {% for item in tab %}
-                <li>
-                    <a target="play" href="{% url 'play' item.song.id %}" class="pic layz_load pic_po">
-                        <img data-src="{{ item.song.img.url }}">
-                    </a>
-                    <h3>
-                        <a target="play" href="{% url 'play' item.song.id %}">
-                            {{ item.song.name }}
-                        </a>
-                    </h3>
-                    <div class="singer"><span>{{ item.song.singer }}</span></div>
-                    {% if tabs.0 == tab %}
-                        <div class="times">搜索次数: <span>{{ item.search }}</span></div>
-                    {% else %}
-                        <div class="times">下载次数: <span>{{ item.download }}</span></div>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endfor %}
-
-            </div>
-        </div>
-    </div><!--end section-->
-</div>
-
-<script src="{% static 'js/common.js' %}"></script>
-<script src="{% static 'js/index.js' %}"></script>
 </body>
-{% endblock %}
+</html>
