@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>正在播放 - MusicStream</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>正在播放 - {{ songs.name }} - MusicStream</title> <!-- 动态标题 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/ajaxfont-awesome/6.0.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -224,7 +224,77 @@
             text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
         }
 
-        /* 评论区域 - 核心修改部分 */
+        /* 播放列表 & 热搜歌曲 区域 */
+        .sidebar-section {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-left: 1rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .play-list-item, .search-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            border-radius: 8px;
+            padding-left: 0.5rem;
+        }
+
+        .play-list-item:hover, .search-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .list-cover {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .list-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .list-info {
+            flex: 1;
+        }
+
+        .list-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-artist {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 评论区域 */
         .comments-container {
             width: 100vw;
             position: relative;
@@ -232,7 +302,7 @@
             transform: translateX(-50%);
             padding: 0 2rem;
             box-sizing: border-box;
-            margin-top: -2rem; /* 抵消原有的间距 */
+            margin-top: -2rem;
         }
 
         .comments-section {
@@ -244,7 +314,7 @@
             max-height: 300px;
             overflow-y: auto;
             transition: all 0.3s ease;
-            width: 100%; /* 占满容器宽度 */
+            width: 100%;
         }
 
         .comments-header {
@@ -383,11 +453,21 @@
             align-items: center;
             justify-content: center;
             color: white;
+            overflow: hidden;
+        }
+
+        .track-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .track-info h4 {
             margin-bottom: 0.2rem;
             font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .track-info p {
@@ -451,6 +531,17 @@
         }
 
         /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .main-layout {
+                flex-wrap: wrap;
+            }
+            .sidebar-section {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+
         @media (max-width: 1024px) {
             .main-layout {
                 flex-direction: column;
@@ -526,38 +617,100 @@
         </div>
     </nav>
 
-    <!-- 主要内容 -->
+    <!-- 主要内容：左侧专辑+右侧歌词+侧边播放列表 -->
     <div class="main-layout">
-        <!-- 左侧专辑区域 -->
-        <!-- 左侧专辑区域（动态渲染封面） -->
-<section class="album-section">
-    <div class="album-art" id="play-album-art">
-        <!-- 动态封面图（默认显示CD图标） -->
-        <img id="play-album-img" src="" alt="专辑封面" style="width:100%;height:100%;object-fit:cover;border-radius:20px;display:none;">
-        <i id="play-default-icon" class="fas fa-compact-disc"></i>
-    </div>
-    <div class="song-info">
-        <h1 class="song-title" id="play-song-title">加载中...</h1>
-        <p class="song-artist" id="play-song-artist">加载中...</p>
-        <p class="song-album" id="play-song-album">未知专辑</p>
-    </div>
-</section>
+        <!-- 左侧专辑区域（动态渲染后端数据） -->
+        <section class="album-section">
+            <div class="album-art" id="play-album-art">
+                <!-- 后端传递歌曲封面：有则显示图，无则显示默认图标 -->
+                {% if songs.img %}
+                <img src="{{ songs.img.url }}" alt="{{ songs.name }}专辑封面" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">
+                {% else %}
+                <i class="fas fa-compact-disc"></i>
+                {% endif %}
+            </div>
+            <div class="song-info">
+                <h1 class="song-title">{{ songs.name }}</h1> <!-- 后端歌曲标题 -->
+                <p class="song-artist">{{ songs.singer }}</p> <!-- 后端歌手名 -->
+                <p class="song-album">播放次数：{{ songs.dynamic.plays }} | 专辑：{{ songs.album|default:"未知专辑" }}</p>
+            </div>
+            <!-- 音频播放标签（绑定后端音频地址） -->
+            <audio id="audio-player" preload="metadata" src="{{ song_file_url }}">
+                您的浏览器不支持音频播放
+            </audio>
+        </section>
 
-<!-- 右侧歌词区域（动态渲染歌词） -->
-<section class="lyrics-section">
-    <div class="lyrics-container">
-        <div class="lyrics-wrapper">
-            <div class="lyrics" id="lyrics">
-                <!-- 歌词将通过JS动态插入 -->
+        <!-- 右侧歌词区域（动态渲染后端歌词） -->
+        <section class="lyrics-section">
+            <div class="lyrics-container">
+                <div class="lyrics-wrapper">
+                    <div class="lyrics" id="lyrics">
+                        <!-- 后端传递歌词：有则分割渲染，无则显示提示 -->
+                        {% if lyrics %}
+                            {% for line in lyrics.splitlines %}
+                                {% if line.strip %}
+                                <div class="lyric-line">{{ line.strip }}</div>
+                                {% else %}
+                                <div class="lyric-line">&nbsp;</div> <!-- 处理空行 -->
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                        <div class="lyric-line active">暂无歌词</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 热搜歌曲（后端传递的 searchs 数据） -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">热搜歌曲</div>
+                <div class="search-list">
+                    {% for hot_song in searchs %}
+                    <div class="search-item" onclick="jumpToSong({{ hot_song.song.id }})">
+                        <div class="list-cover">
+                            {% if hot_song.song.img %}
+                            <img src="{{ hot_song.song.img.url }}" alt="{{ hot_song.song.name }}">
+                            {% else %}
+                            <i class="fas fa-music"></i>
+                            {% endif %}
+                        </div>
+                        <div class="list-info">
+                            <div class="list-title">{{ hot_song.song.name }}</div>
+                            <div class="list-artist">{{ hot_song.song.singer }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- 播放列表（后端传递的 play_list 数据） -->
+        <div class="sidebar-section">
+            <div class="sidebar-title">当前播放列表</div>
+            <div class="play-list">
+                {% for item in play_list %}
+                <div class="play-list-item {% if item.id == songs.id %}active{% endif %}" onclick="jumpToSong({{ item.id }})">
+                    <div class="list-cover">
+                        <!-- 播放列表歌曲封面：若当前歌曲有封面则显示，否则用默认图标 -->
+                        {% if songs.id == item.id and songs.img %}
+                        <img src="{{ songs.img.url }}" alt="{{ item.name }}">
+                        {% else %}
+                        <i class="fas fa-music"></i>
+                        {% endif %}
+                    </div>
+                    <div class="list-info">
+                        <div class="list-title">{{ item.name }}</div>
+                        <div class="list-artist">{{ item.singer }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="play-list-item">播放列表为空</div>
+                {% endfor %}
             </div>
         </div>
     </div>
-</section>
 
-
-    </div>
-
-    <!-- 评论区域（全宽显示） -->
+    <!-- 评论区域 -->
     <div class="comments-container">
         <div class="comments-section" id="commentsSection">
             <div class="comments-header">
@@ -598,28 +751,6 @@
                         <p class="comment-text">听着这首歌，仿佛回到了那个无忧无虑的夏天。</p>
                     </div>
                 </div>
-                <div class="comment-item">
-                    <div class="comment-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="comment-content">
-                        <div class="comment-author">
-                            音乐评论家 <span class="comment-time">2天前</span>
-                        </div>
-                        <p class="comment-text">这首歌融合了流行和民谣元素，展现了周杰伦多元化的音乐风格。</p>
-                    </div>
-                </div>
-                <div class="comment-item">
-                    <div class="comment-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="comment-content">
-                        <div class="comment-author">
-                            怀旧党 <span class="comment-time">3天前</span>
-                        </div>
-                        <p class="comment-text">十年过去了，这首歌依然那么好听，经典永不过时。</p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -629,166 +760,186 @@
         <i class="fas fa-chevron-up"></i>
     </div>
 
-    <!-- 底部播放器 -->
+    <!-- 底部播放器（渲染当前歌曲信息） -->
     <div class="bottom-player">
         <div class="current-track">
             <div class="track-cover">
+                {% if songs.img %}
+                <img src="{{ songs.img.url }}" alt="{{ songs.name }}">
+                {% else %}
                 <i class="fas fa-music"></i>
+                {% endif %}
             </div>
             <div class="track-info">
-                <h4>稻香</h4>
-                <p>周杰伦</p>
+                <h4>{{ songs.name }}</h4>
+                <p>{{ songs.singer }}</p>
             </div>
         </div>
 
         <div class="player-controls">
-            <button class="control-button">
+            <button class="control-button" onclick="playPrevious()">
                 <i class="fas fa-step-backward"></i>
             </button>
-            <button class="control-button play-pause-btn">
-                <i class="fas fa-pause"></i>
+            <button class="control-button play-pause-btn" onclick="togglePlayPause()">
+                <i class="fas fa-play"></i>
             </button>
-            <button class="control-button">
+            <button class="control-button" onclick="playNext()">
                 <i class="fas fa-step-forward"></i>
             </button>
         </div>
 
         <div class="volume-control">
-            <i class="fas fa-volume-up"></i>
-            <div class="volume-slider">
+            <i class="fas fa-volume-up" onclick="toggleMute()"></i>
+            <div class="volume-slider" onclick="setVolume(event)">
                 <div class="volume-fill"></div>
             </div>
         </div>
     </div>
 
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // 1. 解析 URL 参数（获取从 index.html 传递的歌曲数据）
-  const params = new URLSearchParams(window.location.search);
-  const songData = {
-    id: params.get('id'),
-    title: params.get('title'),
-    artist: params.get('artist'),
-    img: params.get('img') || ''
-  };
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. 初始化音频播放器
+            const audioPlayer = document.getElementById('audio-player');
+            const playPauseBtn = document.querySelector('.play-pause-btn i');
 
-  // 2. 验证参数：无歌曲ID则跳回首页
-  if (!songData.id) {
-    alert('未获取到播放歌曲信息');
-    window.location.href = '/';
-    return;
-  }
+            // 2. 歌词滚动逻辑（关联音频播放进度）
+            initLyricsScroll();
 
-  // 3. 动态渲染左侧专辑封面
-  const albumImg = document.getElementById('play-album-img');
-  const defaultIcon = document.getElementById('play-default-icon');
-  if (songData.img) {
-    albumImg.src = songData.img;
-    albumImg.style.display = 'block';
-    defaultIcon.style.display = 'none';
-  }
+            // 3. 评论区回到顶部
+            const commentsSection = document.getElementById('commentsSection');
+            const backToTop = document.getElementById('backToTop');
+            commentsSection.addEventListener('scroll', () => {
+                backToTop.classList.toggle('visible', commentsSection.scrollTop > 100);
+            });
+            backToTop.addEventListener('click', () => {
+                commentsSection.scrollTo({ top: 0, behavior: 'smooth' });
+            });
 
-  // 4. 动态渲染歌曲信息（左侧专辑区下方）
-  document.getElementById('play-song-title').textContent = songData.title || '未知歌曲';
-  document.getElementById('play-song-artist').textContent = songData.artist || '未知歌手';
+            // 4. 音频播放状态同步（播放/暂停时更新按钮图标）
+            audioPlayer.addEventListener('play', () => {
+                playPauseBtn.className = 'fas fa-pause';
+            });
+            audioPlayer.addEventListener('pause', () => {
+                playPauseBtn.className = 'fas fa-play';
+            });
 
-  // 5. 异步请求后端获取歌词（关键：通过歌曲ID获取）
-  fetch(`/get-lyrics/?song_id=${songData.id}`)
-    .then(response => {
-      if (!response.ok) throw new Error('获取歌词失败');
-      return response.json();
-    })
-    .then(data => {
-      // 渲染右侧歌词区域
-      const lyricsContainer = document.getElementById('lyrics');
-      if (data.lyrics && data.lyrics.trim()) {
-        // 按换行符分割歌词，生成每行元素
-        const lyricLines = data.lyrics.split('\n').map(line => {
-          const div = document.createElement('div');
-          div.className = 'lyric-line';
-          div.textContent = line.trim() || ' '; // 处理空行
-          return div;
+            // 5. 音量控制
+            const volumeSlider = document.querySelector('.volume-slider');
+            const volumeFill = volumeSlider.querySelector('.volume-fill');
+            const volumeIcon = document.querySelector('.volume-control i');
+
+            // 初始化音量（70%）
+            audioPlayer.volume = 0.7;
+
+            // 点击滑块调整音量
+            volumeSlider.addEventListener('click', e => {
+                const rect = volumeSlider.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                const volume = Math.max(0, Math.min(1, percent)); // 音量范围 0-1
+                audioPlayer.volume = volume;
+                volumeFill.style.width = `${volume * 100}%`;
+                // 更新音量图标
+                volumeIcon.className = volume > 0.5 ? 'fas fa-volume-up' :
+                                       volume > 0 ? 'fas fa-volume-down' : 'fas fa-volume-mute';
+            });
         });
-        // 清空容器并添加歌词行
-        lyricsContainer.innerHTML = '';
-        lyricLines.forEach(line => lyricsContainer.appendChild(line));
-        // 初始化歌词（激活第一行）
-        initLyricsScroll();
-      } else {
-        // 无歌词时显示提示
-        lyricsContainer.innerHTML = '<div class="lyric-line active">暂无歌词</div>';
-      }
-    })
-    .catch(error => {
-      console.error('歌词获取错误：', error);
-      document.getElementById('lyrics').innerHTML = '<div class="lyric-line active">歌词加载失败</div>';
-    });
 
-  // 6. 歌词滚动逻辑（保持原有动画效果）
-  function initLyricsScroll() {
-    const lyricLines = document.querySelectorAll('.lyric-line');
-    let currentLyricIndex = 0;
-    if (lyricLines.length === 0) return;
+        // 歌词滚动核心函数（关联音频时间）
+        function initLyricsScroll() {
+            const audioPlayer = document.getElementById('audio-player');
+            const lyricLines = document.querySelectorAll('.lyric-line');
+            if (lyricLines.length === 0) return;
 
-    // 激活第一行歌词
-    lyricLines[0].classList.add('active');
+            // 歌词时间匹配（若歌词含时间戳，可在此解析，当前默认按顺序滚动）
+            audioPlayer.addEventListener('timeupdate', () => {
+                // 简单逻辑：按音频进度比例滚动歌词（可根据实际歌词时间戳优化）
+                const progress = audioPlayer.currentTime / audioPlayer.duration;
+                const activeIndex = Math.min(
+                    Math.floor(progress * lyricLines.length),
+                    lyricLines.length - 1
+                );
 
-    // 歌词滚动函数
-    function updateLyricsPosition() {
-      if (lyricLines.length === 0) return;
-      const activeLine = lyricLines[currentLyricIndex];
-      const containerHeight = document.querySelector('.lyrics-wrapper').offsetHeight;
-      const activeLineOffset = activeLine.offsetTop;
-      const activeLineHeight = activeLine.offsetHeight;
-      // 计算偏移量（让当前歌词居中）
-      const offset = containerHeight / 2 - activeLineOffset - activeLineHeight / 2;
-      document.querySelector('.lyrics').style.transform = `translateY(${offset}px)`;
-    }
+                // 更新激活状态
+                lyricLines.forEach((line, index) => {
+                    line.classList.toggle('active', index === activeIndex);
+                });
 
-    // 模拟歌词滚动（实际项目需关联音频播放进度）
-    setInterval(() => {
-      lyricLines.forEach(line => line.classList.remove('active'));
-      currentLyricIndex = (currentLyricIndex + 1) % lyricLines.length;
-      lyricLines[currentLyricIndex].classList.add('active');
-      updateLyricsPosition();
-    }, 3000);
+                // 滚动歌词到可视区域（居中显示当前歌词）
+                const activeLine = lyricLines[activeIndex];
+                const containerHeight = document.querySelector('.lyrics-wrapper').offsetHeight;
+                const activeLineOffset = activeLine.offsetTop;
+                const activeLineHeight = activeLine.offsetHeight;
+                const offset = containerHeight / 2 - activeLineOffset - activeLineHeight / 2;
+                document.querySelector('.lyrics').style.transform = `translateY(${offset}px)`;
+            });
+        }
 
-    // 窗口 resize 时重新计算歌词位置
-    window.addEventListener('resize', updateLyricsPosition);
-  }
+        // 播放/暂停切换
+        function togglePlayPause() {
+            const audioPlayer = document.getElementById('audio-player');
+            const playPauseBtn = document.querySelector('.play-pause-btn i');
 
-  // 7. 保留原有功能：评论区滚动、回到顶部、音量控制、播放暂停
-  // 评论区回到顶部
-  const commentsSection = document.getElementById('commentsSection');
-  const backToTop = document.getElementById('backToTop');
-  commentsSection.addEventListener('scroll', () => {
-    backToTop.classList.toggle('visible', commentsSection.scrollTop > 100);
-  });
-  backToTop.addEventListener('click', () => {
-    commentsSection.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playPauseBtn.className = 'fas fa-pause';
+            } else {
+                audioPlayer.pause();
+                playPauseBtn.className = 'fas fa-play';
+            }
+        }
 
-  // 音量控制
-  const volumeSlider = document.querySelector('.volume-slider');
-  volumeSlider.addEventListener('click', e => {
-    const rect = volumeSlider.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    volumeSlider.querySelector('.volume-fill').style.width = `${Math.max(0, Math.min(100, percent * 100))}%`;
-  });
+        // 静音切换
+        function toggleMute() {
+            const audioPlayer = document.getElementById('audio-player');
+            const volumeIcon = document.querySelector('.volume-control i');
+            const volumeFill = document.querySelector('.volume-fill');
 
-  // 播放暂停按钮
-  const playPauseBtn = document.querySelector('.play-pause-btn');
-  let isPlaying = true;
-  playPauseBtn.addEventListener('click', () => {
-    isPlaying = !isPlaying;
-    playPauseBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
-  });
-});
+            audioPlayer.muted = !audioPlayer.muted;
+            if (audioPlayer.muted) {
+                volumeIcon.className = 'fas fa-volume-mute';
+                volumeFill.style.opacity = 0.5;
+            } else {
+                volumeIcon.className = audioPlayer.volume > 0.5 ? 'fas fa-volume-up' : 'fas fa-volume-down';
+                volumeFill.style.opacity = 1;
+            }
+        }
 
-// 返回首页函数
-function goHome() {
-  window.location.href = '/';
-}
-</script>
+        // 跳转到其他歌曲（播放列表/热搜歌曲点击）
+        function jumpToSong(songId) {
+            // 跳转到对应歌曲的播放页（匹配后端路由：/歌曲ID.html）
+            window.location.href = `/${songId}.html`;
+        }
+
+        // 上一曲（简化版：跳转到播放列表前一首，需根据实际列表优化）
+        function playPrevious() {
+            const playList = {% if play_list %}{{ play_list|safe }}{% else %}{% endif %};
+            const currentId = {{ songs.id }};
+            const currentIndex = playList.findIndex(item => item.id === currentId);
+
+            if (currentIndex > 0) {
+                jumpToSong(playList[currentIndex - 1].id);
+            } else {
+                alert('已经是第一首歌了');
+            }
+        }
+
+        // 下一曲（简化版：跳转到播放列表后一首）
+        function playNext() {
+            const playList = {% if play_list %}{{ play_list|safe }}{% else %}{% endif %};
+            const currentId = {{ songs.id }};
+            const currentIndex = playList.findIndex(item => item.id === currentId);
+
+            if (currentIndex < playList.length - 1) {
+                jumpToSong(playList[currentIndex + 1].id);
+            } else {
+                alert('已经是最后一首歌了');
+            }
+        }
+
+        // 返回首页
+        function goHome() {
+            window.location.href = '/';
+        }
+    </script>
 </body>
 </html>
