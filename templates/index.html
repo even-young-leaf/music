@@ -41,7 +41,7 @@
     </a>
     {% else %}
     <!-- 未登录：跳转登录页 -->
-    <a href="{% url 'login' %}" title="登录">
+    <a href="{% url 'login' %}" class="login-link" title="登录">
         <div class="user-avatar">
             <i class="fas fa-user"></i>
         </div>
@@ -176,7 +176,8 @@
 
     <!-- 底部播放器 -->
     <div class="bottom-player">
-        <div class="current-track" onclick="goToCurrentPlayPage()">
+        <!-- 底部播放器 - 当前歌曲区域（添加点击跳转逻辑） -->
+        <div class="current-track" onclick="goToPlayPage()">
             <div class="track-cover">
                 <i class="fas fa-music"></i>
             </div>
@@ -217,3 +218,116 @@
 
 </body>
 </html>
+<!-- 在 index.html 底部 </body> 前添加脚本 -->
+<script src="/static/js/index.js"></script>
+<script>
+// 1. 记录当前选中的歌曲信息
+let currentSong = null;
+
+// 2. 为所有音乐卡片添加点击事件：记录当前歌曲
+// 2. 为所有音乐卡片添加点击事件：记录当前歌曲 + 执行播放
+document.querySelectorAll('.music-card').forEach(card => {
+  card.addEventListener('click', function() {
+    // 1. 获取卡片中的歌曲数据（原有逻辑保留）
+    const songUrl = this.dataset.songUrl; // 关键：获取音频文件地址（之前遗漏使用）
+    currentSong = {
+      id: this.dataset.songId,
+      title: this.dataset.songTitle,
+      artist: this.dataset.songArtist,
+      img: this.querySelector('.album-cover img')?.src || '',
+      url: songUrl // 新增：记录音频地址
+    };
+
+    // 2. 视觉反馈（原有逻辑保留）
+    document.querySelectorAll('.music-card').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+
+    // 3. 同步更新底部播放器显示（原有逻辑保留）
+    updateBottomPlayer(currentSong);
+
+    // 4. 关键修复：设置音频地址并播放（新增逻辑）
+    const audioPlayer = document.getElementById('audio-player'); // 获取底部音频元素
+    if (audioPlayer && songUrl) {
+      audioPlayer.src = songUrl; // 给音频元素设置当前歌曲的地址
+      audioPlayer.play() // 执行播放
+        .then(() => {
+          console.log('开始播放:', currentSong.title);
+          // 同步更新底部播放器的播放按钮图标（从 "播放" 变为 "暂停"）
+          document.querySelector('.play-pause-btn i').className = 'fas fa-pause';
+        })
+        .catch(error => {
+          console.error('播放失败:', error);
+          alert('播放失败，请稍后重试');
+        });
+    }
+  });
+});
+
+// 3. 更新底部播放器显示当前选中的歌曲
+function updateBottomPlayer(song) {
+  if (!song) return;
+  const trackCover = document.querySelector('.bottom-player .track-cover');
+  const trackTitle = document.querySelector('.bottom-player .track-info h4');
+  const trackArtist = document.querySelector('.bottom-player .track-info p');
+
+  // 更新封面（有图显示图，无图显示默认图标）
+  if (song.img) {
+    trackCover.innerHTML = `<img src="${song.img}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+  } else {
+    trackCover.innerHTML = '<i class="fas fa-music"></i>';
+  }
+  // 更新歌曲名和歌手
+  trackTitle.textContent = song.title;
+  trackArtist.textContent = song.artist;
+}
+
+// 4. 点击左下角播放器区域跳转至 play.html
+function goToCurrentPlayPage() {
+  if (!currentSong) {
+    alert('请先选择一首歌曲播放');
+    return;
+  }
+  // 用 URL 参数传递歌曲数据（歌词后续在play.html通过ID从后端获取）
+  const queryParams = new URLSearchParams({
+    id: currentSong.id,
+    title: currentSong.title,
+    artist: currentSong.artist,
+    img: currentSong.img || ''
+  });
+  // 跳转到 play.html 并携带参数
+  window.location.href = `/play/?${queryParams.toString()}`;
+}
+// 在 index.html 的脚本部分添加
+function goToPlayPage() {
+  if (!currentSong || !currentSong.id) {
+    alert('请先选择一首歌曲播放');
+    return;
+  }
+  // 使用 Django URL 模式跳转到播放页面
+  window.location.href = `/play/${currentSong.id}/`;
+}
+// 底部播放器：暂停/继续播放切换（新增函数）
+function togglePlayPause() {
+  const audioPlayer = document.getElementById('audio-player');
+  const playIcon = document.querySelector('.play-pause-btn i');
+
+  if (!audioPlayer.src) { // 若未选择歌曲，提示用户
+    alert('请先选择一首歌曲');
+    return;
+  }
+
+  if (audioPlayer.paused) { // 若当前暂停，则播放
+    audioPlayer.play();
+    playIcon.className = 'fas fa-pause';
+  } else { // 若当前播放，则暂停
+    audioPlayer.pause();
+    playIcon.className = 'fas fa-play';
+  }
+}
+
+// 修复 "上一曲" 按钮（避免控制台报错，可先留空实现）
+function previousSong() {
+  alert('上一曲功能待实现');
+  // 后续可补充：获取歌曲列表，切换到上一首的逻辑
+}
+</script>

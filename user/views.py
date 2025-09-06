@@ -35,8 +35,7 @@ def loginView(request):
                 # 校验密码（Django 的 check_password 会自动匹配哈希后的密码）
                 if check_password(login_pwd, user.password):
                     login(request, user)  # 登录成功，初始化登录状态
-                    # 修复：登录后跳转到个人中心（home），而非 comment
-                    return redirect(reverse('home', kwargs={'page': 1}))
+                    return redirect(reverse('index'))
                 else:
                     tips = '密码错误'
         # 2. 处理注册请求（前端没传 loginUser 参数）
@@ -55,11 +54,11 @@ def loginView(request):
                 else:
                     tips = '注册失败，请检查信息'
     # GET 请求：渲染登录页面（传递表单和提示）
-    return render(request, 'login.html', {'user_form': user_form, 'tips': tips, 'request': request})
+    return render(request, 'login.html', {'user_form': user_form, 'tips': tips})
 
 # 用户中心
 # 设置用户登录限制
-@login_required(login_url='/user/login.html')
+@login_required(login_url='/login.html')
 def homeView(request, page):
     # 热搜歌曲
     searchs = Dynamic.objects.select_related('song').\
@@ -73,9 +72,14 @@ def homeView(request, page):
         pages = paginator.page(1)
     except EmptyPage:
         pages = paginator.page(paginator.num_pages)
-    return render(request, 'home.html', locals())
-
+    return render(request, 'home.html', {
+        "user": request.user,
+    })
 # 退出登录
 def logoutView(request):
     logout(request)
-    return redirect('/')
+    return redirect('login')
+@login_required(login_url='/user/login.html')
+def userView(request):
+    return render(request, 'user.html', {"user": request.user})
+

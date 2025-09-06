@@ -529,46 +529,32 @@
     <!-- 主要内容 -->
     <div class="main-layout">
         <!-- 左侧专辑区域 -->
-        <section class="album-section">
-            <div class="album-art">
-                <i class="fas fa-compact-disc"></i>
-            </div>
-            <div class="song-info">
-                <h1 class="song-title">稻香</h1>
-                <p class="song-artist">周杰伦</p>
-                <p class="song-album">专辑《魔杰座》</p>
-            </div>
-        </section>
+        <!-- 左侧专辑区域（动态渲染封面） -->
+<section class="album-section">
+    <div class="album-art" id="play-album-art">
+        <!-- 动态封面图（默认显示CD图标） -->
+        <img id="play-album-img" src="" alt="专辑封面" style="width:100%;height:100%;object-fit:cover;border-radius:20px;display:none;">
+        <i id="play-default-icon" class="fas fa-compact-disc"></i>
+    </div>
+    <div class="song-info">
+        <h1 class="song-title" id="play-song-title">加载中...</h1>
+        <p class="song-artist" id="play-song-artist">加载中...</p>
+        <p class="song-album" id="play-song-album">未知专辑</p>
+    </div>
+</section>
 
-        <!-- 右侧歌词区域 -->
-        <section class="lyrics-section">
-            <div class="lyrics-container">
-                <div class="lyrics-wrapper">
-                    <div class="lyrics" id="lyrics">
-                        <div class="lyric-line">对这个世界如果你有太多的抱怨</div>
-                        <div class="lyric-line">跌倒了就不敢继续往前走</div>
-                        <div class="lyric-line">为什么人要这么的脆弱堕落</div>
-                        <div class="lyric-line">请你打开电视看看</div>
-                        <div class="lyric-line">多少人为生命在努力勇敢的走下去</div>
-                        <div class="lyric-line active">我们是不是该知足</div>
-                        <div class="lyric-line">珍惜一切就算没有拥有</div>
-                        <div class="lyric-line">还记得你说家是唯一的城堡</div>
-                        <div class="lyric-line">随着稻香河流继续奔跑</div>
-                        <div class="lyric-line">微微笑小时候的梦我知道</div>
-                        <div class="lyric-line">不要哭让萤火虫带着你逃跑</div>
-                        <div class="lyric-line">乡间的歌谣永远的依靠</div>
-                        <div class="lyric-line">回家吧回到最初的美好</div>
-                        <div class="lyric-line">不要这么容易就想放弃就像我说的</div>
-                        <div class="lyric-line">追不到的梦想换个梦不就得了</div>
-                        <div class="lyric-line">为自己的人生鲜艳上色</div>
-                        <div class="lyric-line">先把爱涂上喜欢的颜色</div>
-                        <div class="lyric-line">笑一个吧功成名就不是目的</div>
-                        <div class="lyric-line">让自己快乐快乐这才叫做意义</div>
-                        <div class="lyric-line">童年的纸飞机现在终于飞回我手里</div>
-                    </div>
-                </div>
+<!-- 右侧歌词区域（动态渲染歌词） -->
+<section class="lyrics-section">
+    <div class="lyrics-container">
+        <div class="lyrics-wrapper">
+            <div class="lyrics" id="lyrics">
+                <!-- 歌词将通过JS动态插入 -->
             </div>
-        </section>
+        </div>
+    </div>
+</section>
+
+
     </div>
 
     <!-- 评论区域（全宽显示） -->
@@ -676,112 +662,133 @@
     </div>
 
     <script>
-        // 页面交互功能
-        document.addEventListener('DOMContentLoaded', function() {
-            const lyricsContainer = document.querySelector('.lyrics-wrapper');
-            const lyrics = document.getElementById('lyrics');
-            const lyricLines = document.querySelectorAll('.lyric-line');
-            const commentsSection = document.getElementById('commentsSection');
-            const backToTop = document.getElementById('backToTop');
-            // 音频播放功能
-            const audioPlayer = new Audio();
-            const playPauseBtn = document.querySelector('.play-pause-btn');
-            let isPlaying = true;
+document.addEventListener('DOMContentLoaded', function() {
+  // 1. 解析 URL 参数（获取从 index.html 传递的歌曲数据）
+  const params = new URLSearchParams(window.location.search);
+  const songData = {
+    id: params.get('id'),
+    title: params.get('title'),
+    artist: params.get('artist'),
+    img: params.get('img') || ''
+  };
 
-            // 如果有歌曲URL，则加载并播放
-            const songFileUrl = "{{ song_file_url|escapejs }}";
-            if (songFileUrl) {
-                audioPlayer.src = songFileUrl;
-                audioPlayer.play()
-                    .then(() => {
-                        isPlaying = true;
-                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                    })
-                    .catch(error => {
-                        console.error('播放失败:', error);
-                    });
-            }
+  // 2. 验证参数：无歌曲ID则跳回首页
+  if (!songData.id) {
+    alert('未获取到播放歌曲信息');
+    window.location.href = '/';
+    return;
+  }
 
+  // 3. 动态渲染左侧专辑封面
+  const albumImg = document.getElementById('play-album-img');
+  const defaultIcon = document.getElementById('play-default-icon');
+  if (songData.img) {
+    albumImg.src = songData.img;
+    albumImg.style.display = 'block';
+    defaultIcon.style.display = 'none';
+  }
+
+  // 4. 动态渲染歌曲信息（左侧专辑区下方）
+  document.getElementById('play-song-title').textContent = songData.title || '未知歌曲';
+  document.getElementById('play-song-artist').textContent = songData.artist || '未知歌手';
+
+  // 5. 异步请求后端获取歌词（关键：通过歌曲ID获取）
+  fetch(`/get-lyrics/?song_id=${songData.id}`)
+    .then(response => {
+      if (!response.ok) throw new Error('获取歌词失败');
+      return response.json();
+    })
+    .then(data => {
+      // 渲染右侧歌词区域
+      const lyricsContainer = document.getElementById('lyrics');
+      if (data.lyrics && data.lyrics.trim()) {
+        // 按换行符分割歌词，生成每行元素
+        const lyricLines = data.lyrics.split('\n').map(line => {
+          const div = document.createElement('div');
+          div.className = 'lyric-line';
+          div.textContent = line.trim() || ' '; // 处理空行
+          return div;
         });
-        let currentLyricIndex = 5; // 当前高亮歌词的索引
+        // 清空容器并添加歌词行
+        lyricsContainer.innerHTML = '';
+        lyricLines.forEach(line => lyricsContainer.appendChild(line));
+        // 初始化歌词（激活第一行）
+        initLyricsScroll();
+      } else {
+        // 无歌词时显示提示
+        lyricsContainer.innerHTML = '<div class="lyric-line active">暂无歌词</div>';
+      }
+    })
+    .catch(error => {
+      console.error('歌词获取错误：', error);
+      document.getElementById('lyrics').innerHTML = '<div class="lyric-line active">歌词加载失败</div>';
+    });
 
-            // 初始化歌词位置
-            updateLyricsPosition();
+  // 6. 歌词滚动逻辑（保持原有动画效果）
+  function initLyricsScroll() {
+    const lyricLines = document.querySelectorAll('.lyric-line');
+    let currentLyricIndex = 0;
+    if (lyricLines.length === 0) return;
 
-            // 音频播放完成处理
-            audioPlayer.addEventListener('ended', function() {
-            isPlaying = false;
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-        });
-            // 歌词滚动功能
-            function updateLyricsPosition() {
-                const activeLine = lyricLines[currentLyricIndex];
-                const containerHeight = lyricsContainer.offsetHeight;
-                const activeLineOffset = activeLine.offsetTop;
-                const activeLineHeight = activeLine.offsetHeight;
+    // 激活第一行歌词
+    lyricLines[0].classList.add('active');
 
-                // 计算偏移量使当前歌词居中
-                const offset = containerHeight / 2 - activeLineOffset - activeLineHeight / 2;
-                lyrics.style.transform = `translateY(${offset}px)`;
-            }
+    // 歌词滚动函数
+    function updateLyricsPosition() {
+      if (lyricLines.length === 0) return;
+      const activeLine = lyricLines[currentLyricIndex];
+      const containerHeight = document.querySelector('.lyrics-wrapper').offsetHeight;
+      const activeLineOffset = activeLine.offsetTop;
+      const activeLineHeight = activeLine.offsetHeight;
+      // 计算偏移量（让当前歌词居中）
+      const offset = containerHeight / 2 - activeLineOffset - activeLineHeight / 2;
+      document.querySelector('.lyrics').style.transform = `translateY(${offset}px)`;
+    }
 
-            // 模拟歌词滚动（实际应用中应根据播放时间更新）
-            setInterval(() => {
-                // 移除当前高亮
-                lyricLines.forEach(line => line.classList.remove('active'));
+    // 模拟歌词滚动（实际项目需关联音频播放进度）
+    setInterval(() => {
+      lyricLines.forEach(line => line.classList.remove('active'));
+      currentLyricIndex = (currentLyricIndex + 1) % lyricLines.length;
+      lyricLines[currentLyricIndex].classList.add('active');
+      updateLyricsPosition();
+    }, 3000);
 
-                // 更新索引
-                currentLyricIndex = (currentLyricIndex + 1) % lyricLines.length;
+    // 窗口 resize 时重新计算歌词位置
+    window.addEventListener('resize', updateLyricsPosition);
+  }
 
-                // 添加新高亮
-                lyricLines[currentLyricIndex].classList.add('active');
+  // 7. 保留原有功能：评论区滚动、回到顶部、音量控制、播放暂停
+  // 评论区回到顶部
+  const commentsSection = document.getElementById('commentsSection');
+  const backToTop = document.getElementById('backToTop');
+  commentsSection.addEventListener('scroll', () => {
+    backToTop.classList.toggle('visible', commentsSection.scrollTop > 100);
+  });
+  backToTop.addEventListener('click', () => {
+    commentsSection.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 
-                // 更新歌词位置
-                updateLyricsPosition();
-            }, 3000);
+  // 音量控制
+  const volumeSlider = document.querySelector('.volume-slider');
+  volumeSlider.addEventListener('click', e => {
+    const rect = volumeSlider.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    volumeSlider.querySelector('.volume-fill').style.width = `${Math.max(0, Math.min(100, percent * 100))}%`;
+  });
 
-            // 评论区域滚动检测
-            commentsSection.addEventListener('scroll', function() {
-                if (commentsSection.scrollTop > 100) {
-                    backToTop.classList.add('visible');
-                } else {
-                    backToTop.classList.remove('visible');
-                }
-            });
+  // 播放暂停按钮
+  const playPauseBtn = document.querySelector('.play-pause-btn');
+  let isPlaying = true;
+  playPauseBtn.addEventListener('click', () => {
+    isPlaying = !isPlaying;
+    playPauseBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+  });
+});
 
-            // 回到顶部功能
-            backToTop.addEventListener('click', function() {
-                commentsSection.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            });
-
-            // 音量控制
-            const volumeSlider = document.querySelector('.volume-slider');
-            volumeSlider.addEventListener('click', function(e) {
-                const rect = this.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                const volumeFill = this.querySelector('.volume-fill');
-                volumeFill.style.width = Math.max(0, Math.min(100, percent * 100)) + '%';
-                audioPlayer.volume = percent;
-            });
-
-
-            playPauseBtn.addEventListener('click', function() {
-                isPlaying = !isPlaying;
-                this.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
-            });
-
-            // 窗口大小变化时更新歌词位置
-            window.addEventListener('resize', updateLyricsPosition);
-        });
-
-        // 返回首页
-        function goHome() {
-            console.log('返回首页');
-            // window.location.href = '/';
-        }
-    </script>
+// 返回首页函数
+function goHome() {
+  window.location.href = '/';
+}
+</script>
 </body>
 </html>

@@ -14,7 +14,7 @@ class MyUserCreationForm(UserCreationForm):
     # 设置自定义字段 password1 和 password2 的样式和属性
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['password'].widget = forms.PasswordInput(
+        self.fields['password1'].widget = forms.PasswordInput(
             attrs={'class': 'txt tabInput',
                    'placeholder': '密码, 4-16位数字/字母/符号(空格除外)'})
         self.fields['password2'].widget = forms.PasswordInput(

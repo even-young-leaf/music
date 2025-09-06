@@ -4,8 +4,9 @@ from . import views
 
 urlpatterns = [
     # 登录路由（必须指向 loginView，渲染 login.html）
-    path('user/login.html', views.loginView, name='login'),  # 关键：name="login" 需与模板中 {% url 'login' %} 匹配
+    path('login.html', views.loginView, name='login'),  # 关键：name="login" 需与模板中 {% url 'login' %} 匹配
     # 个人中心路由（指向 homeView，渲染 home.html）
-    path('home/<int:page>/', views.homeView, name='home'),
-    path('logout.html',views.logoutView,name='logout')
+    path('home/<int:page>/.html', views.homeView, name='home'),
+    path('logout.html',views.logoutView,name='logout'),
+    path('user.html', views.userView, name='user'),
 ]

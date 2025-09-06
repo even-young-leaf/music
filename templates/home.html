@@ -563,7 +563,7 @@
         </div>
 
         <div class="nav-breadcrumb">
-            <a href="#" class="breadcrumb-item" onclick="goHome()">首页</a>
+            <a href="{% url 'index' %}" class="breadcrumb-item" onclick="goHome()">首页</a>
             <i class="fas fa-chevron-right"></i>
             <span class="breadcrumb-item active">个人中心</span>
         </div>
@@ -585,10 +585,10 @@
                     <i class="fas fa-user"></i>
                     个人资料
                 </div>
-                <div class="nav-item" data-tab="settings">
+                <a href="{%  url 'user' %}"><div class="nav-item" data-tab="settings">
                     <i class="fas fa-cog"></i>
                     账户设置
-                </div>
+                </div></a>
                 <div class="nav-item" data-tab="security">
                     <i class="fas fa-shield-alt"></i>
                     安全设置
@@ -618,23 +618,19 @@
             <section class="profile-header">
                 <div class="profile-info">
                     <div class="profile-avatar">
-                        <img id="profile-avatar" src="" alt="用户头像" style="display: none;">
+                        <img id="profile-avatar" src="{{ user.avatar }}" alt="用户头像" style="display: none;">
                         <i class="fas fa-user" id="profile-avatar-icon"></i>
                     </div>
                     <div class="profile-details">
-                        <h1 id="profile-username">音乐爱好者</h1>
+                        <h1 id="profile-username">{{ user.username }}</h1>
                         <div class="profile-meta">
                             <div class="meta-item">
                                 <i class="fas fa-id-card"></i>
-                                <span>ID: <span id="user-id">MS001234</span></span>
+                                <span>ID: <span id="user-id">{{ user.id }}</span></span>
                             </div>
                             <div class="meta-item">
                                 <i class="fas fa-envelope"></i>
-                                <span id="user-email">user@example.com</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>注册时间: <span id="register-date">2024年1月15日</span></span>
+                                <span id="user-email">{{ user.email}}</span>
                             </div>
                         </div>
                     </div>

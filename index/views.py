@@ -38,6 +38,7 @@ def indexView(request):
         'user_avatar': user_avatar, 
         'is_authenticated': request.user.is_authenticated, # 传递登录状态
         'username': request.user.username if request.user.is_authenticated else '游客',
+        'request': request,
     }
     return render(request, 'index.html', context)
 
